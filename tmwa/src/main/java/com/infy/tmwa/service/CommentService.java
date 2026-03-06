@@ -19,8 +19,9 @@ import java.util.List;
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final TaskRepository taskRepository;
-    private final UserRepository userRepository;
+    private final TaskRepository    taskRepository;
+    private final UserRepository    userRepository;
+    private final ActivityService   activityService;   // ← injected
 
     public List<TaskComment> getComments(Long taskId) {
         return commentRepository.findByTaskIdOrderByCreatedAtAsc(taskId);
@@ -44,7 +45,17 @@ public class CommentService {
                 .body(body)
                 .build();
 
-        return commentRepository.save(comment);
+        TaskComment saved = commentRepository.save(comment);
+
+        // ── F-EXT-05: Log COMMENT_ADDED ──
+        activityService.logActivity(
+                user,
+                taskId,
+                "COMMENT_ADDED",
+                user.getFullName() + " commented on \"" + task.getTitle() + "\""
+        );
+
+        return saved;
     }
 
     public void deleteComment(Long commentId, String email) {
@@ -57,5 +68,6 @@ public class CommentService {
         }
 
         commentRepository.delete(comment);
+        // Note: no activity log for comment deletion — not in F-EXT-05 spec
     }
 }

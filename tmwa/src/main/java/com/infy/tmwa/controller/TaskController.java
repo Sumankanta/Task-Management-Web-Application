@@ -1,6 +1,7 @@
 package com.infy.tmwa.controller;
 
 import com.infy.tmwa.dto.TaskDTO;
+import com.infy.tmwa.dto.TaskSummaryDTO;
 import com.infy.tmwa.entity.Task;
 import com.infy.tmwa.entity.User;
 import com.infy.tmwa.service.TaskService;
@@ -41,6 +42,13 @@ public class TaskController {
             log.error("Failed to fetch tasks for user: {} — {}", user.getEmail(), e.getMessage());
             throw e;
         }
+    }
+
+    @GetMapping("/summary")
+    public TaskSummaryDTO getSummary(
+            @AuthenticationPrincipal User user
+    ){
+        return taskService.getSummary(user);
     }
 
     // ✅ GET TASK BY ID

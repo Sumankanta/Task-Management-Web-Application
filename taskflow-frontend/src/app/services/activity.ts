@@ -3,12 +3,18 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+// Matches ActivityLog.java entity field names exactly
 export interface ActivityEntry {
   id:          number;
-  actionCode:  string;
+  taskId:      number | null;   // nullable — null when task was deleted
+  actor: {                      // nested User object (not actorName string)
+    id:        number;
+    fullName:  string;
+    email:     string;
+  };
+  actionCode:  string;          // camelCase — matches @Column field in entity
   message:     string;
-  createdAt:   string;
-  actorName?:  string;
+  createdAt:   string;          // LocalDateTime serialized as ISO string by Jackson
 }
 
 @Injectable({ providedIn: 'root' })

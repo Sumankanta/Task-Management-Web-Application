@@ -1,19 +1,17 @@
 // src/app/dashboard/dashboard.ts
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NavbarComponent } from '../shared/navbar/navbar';
-import { TaskService }     from '../services/task';
-import { AuthService }     from '../services/auth';
-import { CommentService }  from '../services/comment';
-import { AnalyticsService, TaskSummary } from '../services/analytics';
-import { ActivityService, ActivityEntry } from '../services/activity';
-import { TaskDueDatePipe } from '../pipes/task-due-date-pipe';
+import { NavbarComponent }   from '../shared/navbar/navbar';
+import { TaskService }       from '../services/task';
+import { AuthService }       from '../services/auth';
+import { CommentService }    from '../services/comment';
 import { RelativeTimePipe } from '../pipes/relative-time-pipe';
+import { TaskDueDatePipe } from '../pipes/task-due-date-pipe';
+import { ActivityEntry, ActivityService } from '../services/activity';
+import { TaskSummary, AnalyticsService } from '../services/analytics';
 
-
-// Chart.js is loaded via CDN in index.html — declare global
-declare const Chart: any;
+declare const Chart: any;  // loaded via CDN in index.html
 
 @Component({
   selector: 'app-dashboard',
@@ -28,7 +26,7 @@ declare const Chart: any;
   templateUrl: './dashboard.html',
   styleUrls:   ['./dashboard.css']
 })
-export class DashboardComponent implements OnInit, AfterViewInit {
+export class DashboardComponent implements OnInit {
 
   // ── Core data ──
   tasks:    any[] = [];
@@ -56,9 +54,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   private priorityChart: any = null;
 
   // ── F-EXT-05: Activity Feed ──
-  activityFeed:        ActivityEntry[] = [];
-  activityLoading      = false;
-  showActivityPanel    = true;
+  activityFeed:     ActivityEntry[] = [];
+  activityLoading = false;
 
   // ── F-EXT-06: Due date banner ──
   bannerDismissed = false;
@@ -66,31 +63,33 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   // ── Forms ──
   newTask: any = {
     title: '', description: '', dueDate: '',
-    status: 'TODO', assignedTo: null, priority: 'MEDIUM'   // ← F-EXT-03
+    status: 'TODO', assignedTo: null, priority: 'MEDIUM'
   };
 
   editTask: any = {
     title: '', description: '', dueDate: '',
-    status: '', assignedTo: null, priority: 'MEDIUM'        // ← F-EXT-03
+    status: '', assignedTo: null, priority: 'MEDIUM'
   };
 
   newComment = '';
 
   constructor(
-    private taskService:     TaskService,
-    private auth:            AuthService,
-    private commentService:  CommentService,
-    private analyticsService: AnalyticsService,             // ← F-EXT-04
-    private activityService:  ActivityService               // ← F-EXT-05
+    private taskService:      TaskService,
+    private auth:             AuthService,
+    private commentService:   CommentService,
+    private analyticsService: AnalyticsService,
+    private activityService:  ActivityService
   ) {}
 
   ngOnInit() {
+    // Restore dark mode on dashboard load — navbar may not have run yet in some route scenarios
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark');
+    }
     this.loadTasks();
     this.loadUsers();
-    this.loadActivityFeed();   // ← F-EXT-05: load on init
+    this.loadActivityFeed();
   }
-
-  ngAfterViewInit() {}
 
   // ════════════════════════════════
   // TASKS
@@ -98,7 +97,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   loadTasks() {
     this.taskService.getTasks().subscribe({
-      next: (res: any) => { this.tasks = res; },
+      next: (res: any) => this.tasks = res,
       error: (err) => console.error('Error loading tasks', err)
     });
   }
@@ -118,8 +117,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         title: '', description: '', dueDate: '',
         status: 'TODO', assignedTo: null, priority: 'MEDIUM'
       };
-      // Reload analytics if open
       if (this.showAnalytics) this.reloadAnalytics();
+      this.loadActivityFeed();
     });
   }
 
@@ -127,6 +126,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.taskService.deleteTask(id).subscribe(() => {
       this.loadTasks();
       if (this.showAnalytics) this.reloadAnalytics();
+      this.loadActivityFeed();
     });
   }
 
@@ -138,7 +138,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       dueDate:     task.dueDate,
       status:      task.status,
       assignedTo:  task.assignee?.id || null,
-      priority:    task.priority || 'MEDIUM'   // ← F-EXT-03
+      priority:    task.priority || 'MEDIUM'
     };
     this.showEditModal = true;
   }
@@ -154,6 +154,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.showEditModal = false;
       this.loadTasks();
       if (this.showAnalytics) this.reloadAnalytics();
+      this.loadActivityFeed();
     });
   }
 
@@ -181,7 +182,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       ? [...this.tasks]
       : this.tasks.filter(t => t.status === this.filter);
 
-    // F-EXT-03: client-side priority sort
     if (this.sortByPriority) {
       const order: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
       list.sort((a, b) =>
@@ -201,10 +201,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   getDueDateState(dueDate: string, status: string): 'overdue' | 'today' | 'done' | 'upcoming' {
     if (status === 'DONE') return 'done';
-    const today = new Date(); today.setHours(0,0,0,0);
-    const due   = new Date(dueDate); due.setHours(0,0,0,0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const due   = new Date(dueDate); due.setHours(0, 0, 0, 0);
     const diff  = due.getTime() - today.getTime();
-    if (diff < 0)  return 'overdue';
+    if (diff < 0)   return 'overdue';
     if (diff === 0) return 'today';
     return 'upcoming';
   }
@@ -243,7 +243,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       next: (data) => {
         this.summary = data;
         this.analyticsLoaded = true;
-        // Wait for DOM then draw charts
         setTimeout(() => this.drawCharts(), 100);
       },
       error: (err) => console.error('Analytics error', err)
@@ -252,17 +251,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   private reloadAnalytics() {
     this.analyticsLoaded = false;
+    this.summary = null;
     this.loadAnalytics();
   }
 
   private drawCharts() {
     if (!this.summary) return;
 
-    // Destroy existing charts to avoid canvas re-use error
     if (this.statusChart)   { this.statusChart.destroy();   this.statusChart = null; }
     if (this.priorityChart) { this.priorityChart.destroy(); this.priorityChart = null; }
 
-    // Status doughnut
+    // ── Status doughnut ──
+    // Uses flat fields: summary.todo, summary.inProgress, summary.done
     const statusCanvas = document.getElementById('statusChart') as HTMLCanvasElement;
     if (statusCanvas) {
       this.statusChart = new Chart(statusCanvas, {
@@ -271,9 +271,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           labels: ['To-Do', 'In Progress', 'Done'],
           datasets: [{
             data: [
-              this.summary!.byStatus.todo,
-              this.summary!.byStatus.inProgress,
-              this.summary!.byStatus.done
+              this.summary!.todo,
+              this.summary!.inProgress,
+              this.summary!.done
             ],
             backgroundColor: ['#6366f1', '#f59e0b', '#10b981'],
             borderWidth: 0,
@@ -281,15 +281,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           }]
         },
         options: {
-          cutout: '68%',
+          maintainAspectRatio: false,   // ← lets CSS control height
+          cutout: '70%',
           plugins: {
-            legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } }
+            legend: {
+              position: 'bottom',
+              labels: { padding: 14, font: { size: 11 }, boxWidth: 10 }
+            }
           }
         }
       });
     }
 
-    // Priority bar
+    // ── Priority bar ──
+    // Uses flat fields: summary.high, summary.medium, summary.low
     const priorityCanvas = document.getElementById('priorityChart') as HTMLCanvasElement;
     if (priorityCanvas) {
       this.priorityChart = new Chart(priorityCanvas, {
@@ -299,24 +304,28 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           datasets: [{
             label: 'Tasks',
             data: [
-              this.summary!.byPriority.high,
-              this.summary!.byPriority.medium,
-              this.summary!.byPriority.low
+              this.summary!.high,
+              this.summary!.medium,
+              this.summary!.low
             ],
             backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
-            borderRadius: 6,
+            borderRadius: 8,
             borderSkipped: false
           }]
         },
         options: {
+          maintainAspectRatio: false,   // ← lets CSS control height
           plugins: { legend: { display: false } },
           scales: {
             y: {
               beginAtZero: true,
-              ticks: { stepSize: 1 },
-              grid: { color: 'rgba(0,0,0,0.05)' }
+              ticks: { stepSize: 1, font: { size: 11 } },
+              grid: { color: 'rgba(0,0,0,0.04)' }
             },
-            x: { grid: { display: false } }
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 11 } }
+            }
           }
         }
       });
@@ -335,7 +344,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // Map action code → icon colour class
+  // Map actionCode → colour class
   actionColor(code: string): string {
     const map: Record<string, string> = {
       TASK_CREATED:          'act-green',
@@ -346,19 +355,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       TASK_DELETED:          'act-grey'
     };
     return map[code] ?? 'act-grey';
-  }
-
-  // Map action code → label
-  actionLabel(code: string): string {
-    const map: Record<string, string> = {
-      TASK_CREATED:          'Created',
-      TASK_STATUS_CHANGED:   'Status',
-      TASK_ASSIGNED:         'Assigned',
-      TASK_PRIORITY_CHANGED: 'Priority',
-      COMMENT_ADDED:         'Comment',
-      TASK_DELETED:          'Deleted'
-    };
-    return map[code] ?? code;
   }
 
   // ════════════════════════════════
@@ -376,7 +372,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.commentService.postComment(taskId, { body: this.newComment }).subscribe(() => {
       this.newComment = '';
       this.commentService.getComments(taskId).subscribe(res => { this.comments = res; });
-      this.loadActivityFeed();  // refresh feed after comment
+      this.loadActivityFeed();
     });
   }
 }

@@ -13,14 +13,29 @@
     <span class="nav-logo-text">TaskFlow</span>
   </a>
 
-  <!-- ── Right side: dark mode + hamburger (always visible) ── -->
+  <!-- ── Right side: hamburger (mobile only) ── -->
   <div class="nav-controls">
+    <button
+      class="hamburger"
+      [class.active]="menuOpen"
+      (click)="toggleMenu()"
+      aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
 
-    <!-- Dark Mode Toggle -->
-    <button class="dark-toggle" (click)="toggleDarkMode()" [title]="darkMode ? 'Switch to Light' : 'Switch to Dark'">
+  <!-- ── Nav Links ── -->
+  <div class="nav-links" [class.open]="menuOpen">
+
+    <!-- Dark Mode Toggle — now lives here where Dashboard used to be -->
+    <button class="dark-toggle" (click)="toggleDarkMode()"
+            [title]="darkMode ? 'Switch to Light' : 'Switch to Dark'">
       <!-- Sun icon (shown in dark mode) -->
       <svg *ngIf="darkMode" width="16" height="16" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="5"/>
         <line x1="12" y1="1"  x2="12" y2="3"/>
         <line x1="12" y1="21" x2="12" y2="23"/>
@@ -33,42 +48,11 @@
       </svg>
       <!-- Moon icon (shown in light mode) -->
       <svg *ngIf="!darkMode" width="16" height="16" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
       </svg>
     </button>
-
-    <!-- Hamburger (mobile only) -->
-    <button
-      class="hamburger"
-      [class.active]="menuOpen"
-      (click)="toggleMenu()"
-      aria-label="Toggle menu">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-
-  </div>
-
-  <!-- ── Nav Links ── -->
-  <div class="nav-links" [class.open]="menuOpen">
-
-    <a
-      routerLink="/dashboard"
-      routerLinkActive="active"
-      class="nav-link"
-      (click)="menuOpen = false">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="7" height="7"/>
-        <rect x="14" y="3" width="7" height="7"/>
-        <rect x="3" y="14" width="7" height="7"/>
-        <rect x="14" y="14" width="7" height="7"/>
-      </svg>
-      Dashboard
-    </a>
 
     <button class="logout-btn" (click)="logout()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
