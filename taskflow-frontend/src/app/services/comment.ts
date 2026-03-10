@@ -1,25 +1,45 @@
-import { HttpClient } from "@angular/common/http"
+import { HttpClient, HttpHeaders } from "@angular/common/http"
 import { Injectable } from "@angular/core"
 
 @Injectable({
-providedIn:'root'
+  providedIn: 'root'
 })
-export class CommentService{
+export class CommentService {
 
-API="http://localhost:8081/api"
+  API = "http://localhost:8081/api"
 
-constructor(private http:HttpClient){}
+  constructor(private http: HttpClient) { }
 
-getComments(taskId:number){
-return this.http.get<any[]>(`${this.API}/tasks/${taskId}/comments`)
-}
+  // ── Auth headers — was missing, causing silent 401 on first click ──
+  private getHeaders() {
+    const token = localStorage.getItem('token');
+    return {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      })
+    };
+  }
 
-postComment(taskId:number,body:any){
-return this.http.post(`${this.API}/tasks/${taskId}/comments`,body)
-}
+  getComments(taskId: number) {
+    return this.http.get<any[]>(
+      `${this.API}/tasks/${taskId}/comments`,
+      this.getHeaders()
+    );
+  }
 
-deleteComment(id:number){
-return this.http.delete(`${this.API}/comments/${id}`)
-}
+  postComment(taskId: number, body: any) {
+    return this.http.post(
+      `${this.API}/tasks/${taskId}/comments`,
+      body,
+      this.getHeaders()
+    );
+  }
+
+  deleteComment(id: number) {
+    return this.http.delete(
+      `${this.API}/comments/${id}`,
+      this.getHeaders()
+    );
+  }
 
 }

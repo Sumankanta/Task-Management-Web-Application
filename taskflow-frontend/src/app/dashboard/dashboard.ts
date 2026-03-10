@@ -1,11 +1,12 @@
 // src/app/dashboard/dashboard.ts
 import { Component, OnInit } from '@angular/core';
+import { switchMap } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NavbarComponent }   from '../shared/navbar/navbar';
-import { TaskService }       from '../services/task';
-import { AuthService }       from '../services/auth';
-import { CommentService }    from '../services/comment';
+import { NavbarComponent } from '../shared/navbar/navbar';
+import { TaskService } from '../services/task';
+import { AuthService } from '../services/auth';
+import { CommentService } from '../services/comment';
 import { RelativeTimePipe } from '../pipes/relative-time-pipe';
 import { TaskDueDatePipe } from '../pipes/task-due-date-pipe';
 import { ActivityEntry, ActivityService } from '../services/activity';
@@ -24,37 +25,37 @@ declare const Chart: any;  // loaded via CDN in index.html
     RelativeTimePipe
   ],
   templateUrl: './dashboard.html',
-  styleUrls:   ['./dashboard.css']
+  styleUrls: ['./dashboard.css']
 })
 export class DashboardComponent implements OnInit {
 
   // ── Core data ──
-  tasks:    any[] = [];
-  users:    any[] = [];
+  tasks: any[] = [];
+  users: any[] = [];
   comments: any[] = [];
 
   // ── State ──
-  activeTask:    number | null = null;
+  activeTask: number | null = null;
   editingTaskId: number | null = null;
-  filter        = 'ALL';
+  filter = 'ALL';
   currentFilter = 'ALL';
 
   // ── Modals ──
   showCreateModal = false;
-  showEditModal   = false;
+  showEditModal = false;
 
   // ── F-EXT-03: Priority sort ──
   sortByPriority = false;
 
   // ── F-EXT-04: Analytics ──
-  showAnalytics   = false;
+  showAnalytics = false;
   analyticsLoaded = false;
   summary: TaskSummary | null = null;
-  private statusChart:   any = null;
+  private statusChart: any = null;
   private priorityChart: any = null;
 
   // ── F-EXT-05: Activity Feed ──
-  activityFeed:     ActivityEntry[] = [];
+  activityFeed: ActivityEntry[] = [];
   activityLoading = false;
 
   // ── F-EXT-06: Due date banner ──
@@ -74,12 +75,12 @@ export class DashboardComponent implements OnInit {
   newComment = '';
 
   constructor(
-    private taskService:      TaskService,
-    private auth:             AuthService,
-    private commentService:   CommentService,
+    private taskService: TaskService,
+    private auth: AuthService,
+    private commentService: CommentService,
     private analyticsService: AnalyticsService,
-    private activityService:  ActivityService
-  ) {}
+    private activityService: ActivityService
+  ) { }
 
   ngOnInit() {
     // Restore dark mode on dashboard load — navbar may not have run yet in some route scenarios
@@ -133,12 +134,12 @@ export class DashboardComponent implements OnInit {
   startEdit(task: any) {
     this.editingTaskId = task.id;
     this.editTask = {
-      title:       task.title,
+      title: task.title,
       description: task.description,
-      dueDate:     task.dueDate,
-      status:      task.status,
-      assignedTo:  task.assignee?.id || null,
-      priority:    task.priority || 'MEDIUM'
+      dueDate: task.dueDate,
+      status: task.status,
+      assignedTo: task.assignee?.id || null,
+      priority: task.priority || 'MEDIUM'
     };
     this.showEditModal = true;
   }
@@ -202,9 +203,9 @@ export class DashboardComponent implements OnInit {
   getDueDateState(dueDate: string, status: string): 'overdue' | 'today' | 'done' | 'upcoming' {
     if (status === 'DONE') return 'done';
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const due   = new Date(dueDate); due.setHours(0, 0, 0, 0);
-    const diff  = due.getTime() - today.getTime();
-    if (diff < 0)   return 'overdue';
+    const due = new Date(dueDate); due.setHours(0, 0, 0, 0);
+    const diff = due.getTime() - today.getTime();
+    if (diff < 0) return 'overdue';
     if (diff === 0) return 'today';
     return 'upcoming';
   }
@@ -258,7 +259,7 @@ export class DashboardComponent implements OnInit {
   private drawCharts() {
     if (!this.summary) return;
 
-    if (this.statusChart)   { this.statusChart.destroy();   this.statusChart = null; }
+    if (this.statusChart) { this.statusChart.destroy(); this.statusChart = null; }
     if (this.priorityChart) { this.priorityChart.destroy(); this.priorityChart = null; }
 
     // ── Status doughnut ──
@@ -339,7 +340,7 @@ export class DashboardComponent implements OnInit {
   loadActivityFeed() {
     this.activityLoading = true;
     this.activityService.getFeed().subscribe({
-      next:  (res) => { this.activityFeed = res; this.activityLoading = false; },
+      next: (res) => { this.activityFeed = res; this.activityLoading = false; },
       error: (err) => { console.error('Activity feed error', err); this.activityLoading = false; }
     });
   }
@@ -347,12 +348,12 @@ export class DashboardComponent implements OnInit {
   // Map actionCode → colour class
   actionColor(code: string): string {
     const map: Record<string, string> = {
-      TASK_CREATED:          'act-green',
-      TASK_STATUS_CHANGED:   'act-amber',
-      TASK_ASSIGNED:         'act-purple',
+      TASK_CREATED: 'act-green',
+      TASK_STATUS_CHANGED: 'act-amber',
+      TASK_ASSIGNED: 'act-purple',
       TASK_PRIORITY_CHANGED: 'act-red',
-      COMMENT_ADDED:         'act-blue',
-      TASK_DELETED:          'act-grey'
+      COMMENT_ADDED: 'act-blue',
+      TASK_DELETED: 'act-grey'
     };
     return map[code] ?? 'act-grey';
   }
@@ -369,10 +370,23 @@ export class DashboardComponent implements OnInit {
 
   postComment(taskId: number) {
     if (!this.newComment.trim()) return;
-    this.commentService.postComment(taskId, { body: this.newComment }).subscribe(() => {
-      this.newComment = '';
-      this.commentService.getComments(taskId).subscribe(res => { this.comments = res; });
-      this.loadActivityFeed();
+    const body = this.newComment;
+    this.newComment = ''; // clear immediately
+
+    // FIX: switchMap chains post → getComments in ONE stream.
+    // Old nested subscribe caused the comment list to reload in a separate
+    // change detection cycle — requiring a second click to see the update.
+    this.commentService.postComment(taskId, { body }).pipe(
+      switchMap(() => this.commentService.getComments(taskId))
+    ).subscribe({
+      next: (res) => {
+        this.comments = res;     // same CD cycle → UI updates immediately
+        this.loadActivityFeed();
+      },
+      error: (err) => {
+        console.error('Post comment error', err);
+        this.newComment = body;  // restore text if request failed
+      }
     });
   }
 }
