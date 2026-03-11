@@ -2,6 +2,7 @@ package com.infy.tmwa.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.*;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
@@ -46,11 +48,17 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/activity", "/api/tasks/summary").authenticated()
-                        .requestMatchers(
-                                "/api/auth/**"
-                        ).permitAll()
-                        .anyRequest().authenticated()
+//                        .requestMatchers("/api/activity", "/api/tasks/summary").authenticated()
+//                        .requestMatchers("/api/auth/**").permitAll()
+
+                                // Public — login + register
+                                .requestMatchers("/api/auth/**").permitAll()
+                                // Admin only
+                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                                // Admin + Manager
+                                .requestMatchers("/api/teams/**").hasAnyRole("ADMIN", "MANAGER")
+                                // All authenticated users
+                                .anyRequest().authenticated()
                 )
                 .sessionManagement(sess ->
                         sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

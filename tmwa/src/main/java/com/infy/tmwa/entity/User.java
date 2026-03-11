@@ -34,6 +34,15 @@ public class User implements UserDetails {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Enumerated
+    @Column(nullable = false)
+    @Builder.Default
+    private UserRole role = UserRole.MEMBER;
+
+    @Column(name = "is_active", nullable = false)
+    @Builder.Default
+    private boolean isActive = true;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("USER"));

@@ -5,9 +5,12 @@ import com.infy.tmwa.dto.AuthRequest;
 import com.infy.tmwa.dto.AuthResponse;
 import com.infy.tmwa.dto.RegisterRequest;
 import com.infy.tmwa.entity.User;
+import com.infy.tmwa.entity.UserRole;
 import com.infy.tmwa.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +29,13 @@ public class AuthService {
 
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             log.warn("Registration failed — email already exists: {}", request.getEmail());
-            throw new RuntimeException("Email already registered");
+            throw new RuntimeException("Email already registered: " + request.getEmail());
         }
+
+        boolean isFirstUser = userRepository.count() == 0;
+        UserRole role = isFirstUser ? UserRole.ADMIN : UserRole.MEMBER;
+
+        log.info("Registering user: {} with role: {}", request.getEmail(), role);
 
         User user = User.builder()
                 .fullName(request.getFullName())
@@ -47,17 +55,23 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> {
                     log.warn("Login failed — email not found: {}", request.getEmail());
-                    return new RuntimeException("Invalid email or password");
+                    return new BadCredentialsException("Invalid email or password");
                 });
+
+        if(!user.isActive()){
+            throw new DisabledException("Account deactivated. Please contact your administrator.");
+        }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             log.warn("Login failed — incorrect password for email: {}", request.getEmail());
-            throw new RuntimeException("Invalid email or password");
+            throw new BadCredentialsException("Invalid email or password");
         }
 
-        String token = jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user);
 
-        log.info("Login successful — token generated for email: {}", user.getEmail());
+//        log.info("Login successful — token generated for email: {}", user.getEmail());
+
+        log.info("Login successful for: {} | role: {}", user.getEmail(), user.getRole());
 
         return new AuthResponse(token);
     }

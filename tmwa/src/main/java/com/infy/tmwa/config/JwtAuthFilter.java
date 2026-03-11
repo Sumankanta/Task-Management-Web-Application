@@ -5,9 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,7 +38,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         // 3️⃣ Extract token
-        String token = authHeader.substring(7);
+        final String token = authHeader.substring(7);
 
         String username;
 
@@ -56,18 +54,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (username != null &&
                 SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // 6️⃣ Load user from database
+            // 6️⃣ Load full User entity from DB — gives us role + isActive (F-W2-01)
             UserDetails userDetails =
                     userDetailsService.loadUserByUsername(username);
 
-            // 7️⃣ Validate token
-            if (jwtService.isTokenValid(token)) {
+            // 7️⃣ Validate token AND check isActive flag (F-W2-01)
+            // isEnabled() maps to User.isActive — deactivated users are blocked
+            // on every request, not just at login
+            if (jwtService.isTokenValid(token) && userDetails.isEnabled()) {
 
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
-                                userDetails.getAuthorities()
+                                userDetails.getAuthorities() // ROLE_ADMIN / ROLE_MANAGER etc.
                         );
 
                 authToken.setDetails(
@@ -76,6 +76,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 );
 
                 // 8️⃣ Set authentication in SecurityContext
+                // getAuthorities() returns ROLE_ADMIN etc. so
+                // @PreAuthorize("hasRole('ADMIN')") works on service methods
                 SecurityContextHolder.getContext()
                         .setAuthentication(authToken);
             }
