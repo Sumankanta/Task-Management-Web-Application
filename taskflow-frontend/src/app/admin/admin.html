@@ -1,0 +1,133 @@
+<div class="admin-page">
+
+  <!-- ══ Page Header ══ -->
+  <div class="page-title-block">
+    <h2 class="page-title">Admin Panel — User Management</h2>
+    <p class="page-subtitle">Full system control. Only Admins can access this page.</p>
+  </div>
+
+  <!-- ══ Stats Strip ══ -->
+  <div class="stats-strip">
+    <div class="stat-card border-blue">
+      <span class="stat-label">Total Users</span>
+      <span class="stat-value">{{ stats.total }}</span>
+    </div>
+    <div class="stat-card border-red">
+      <span class="stat-label">Admins</span>
+      <span class="stat-value">{{ stats.admins }}</span>
+    </div>
+    <div class="stat-card border-purple">
+      <span class="stat-label">Managers</span>
+      <span class="stat-value">{{ stats.managers }}</span>
+    </div>
+    <div class="stat-card border-grey">
+      <span class="stat-label">Deactivated</span>
+      <span class="stat-value">{{ stats.deactivated }}</span>
+    </div>
+  </div>
+
+  <!-- ══ Search + Filter ══ -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <input class="form-control admin-search" [(ngModel)]="searchQuery" placeholder="Search users..." />
+    </div>
+    <div class="filter-tabs">
+      @for (tab of filterTabs; track tab) {
+        <button class="filter-tab" [class.active]="roleFilter === tab" (click)="roleFilter = tab">{{ tab }}</button>
+      }
+    </div>
+  </div>
+
+  <!-- ══ Users Table ══ -->
+  @if (loading) {
+    <div class="loading-center"><div class="spinner"></div></div>
+  }
+
+  @if (!loading) {
+    <div class="table-card">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Teams</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of filteredUsers; track user.id) {
+            <tr [class.row-inactive]="!user.isActive">
+              <td>
+                <div class="user-cell">
+                  <div class="avatar-circle" [style.background]="getAvatarColor(user.fullName)">
+                    {{ getInitials(user.fullName) }}
+                  </div>
+                  <div class="user-name">{{ user.fullName }}</div>
+                </div>
+              </td>
+              <td><span class="user-email-text">{{ user.email }}</span></td>
+              <td>
+                <select class="role-select" [ngClass]="getRoleBadgeClass(user.role)" [ngModel]="user.role" (ngModelChange)="changeRole(user.id, $event)">
+                  @for (r of roles; track r) {
+                    <option [value]="r">{{ r }}</option>
+                  }
+                </select>
+              </td>
+              <td>
+                <span class="status-hollow-pill" [class.status-active]="user.isActive" [class.status-inactive]="!user.isActive">
+                  {{ user.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <span class="team-list">{{ user.teams?.length ? user.teams.join(', ') : '—' }}</span>
+              </td>
+              <td>
+                <div class="action-btns">
+                  <button class="action-btn btn-edit" title="Edit User">Edit</button>
+                  <button class="action-btn" [class.btn-deactivate]="user.isActive" [class.btn-activate]="!user.isActive" (click)="toggleStatus(user)">
+                    {{ user.isActive ? 'Deactivate' : 'Activate' }}
+                  </button>
+                  <button class="action-btn btn-delete" (click)="confirmDelete(user)">Delete</button>
+                </div>
+              </td>
+            </tr>
+          }
+          @if (filteredUsers.length === 0) {
+            <tr>
+              <td colspan="6" class="empty-row">No users match your filters.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- ══ RBAC Quick Reference ══ -->
+  <div class="rbac-bar">
+    <div class="rbac-title">Role Permissions Quick Reference:</div>
+    <div class="rbac-content">
+      <span class="rbac-item">Admin: full control &nbsp;|&nbsp; </span>
+      <span class="rbac-item">Manager: create teams, assign tasks &nbsp;|&nbsp; </span>
+      <span class="rbac-item">Member: create &amp; edit own tasks &nbsp;|&nbsp; </span>
+      <span class="rbac-item">Viewer: read-only</span>
+    </div>
+    <div class="rbac-note">Role changes take effect on the user's NEXT login (new JWT issued).</div>
+  </div>
+</div>
+
+<!-- ══ Delete Confirm ══ -->
+@if (showDeleteConfirm) {
+  <div class="modal-overlay">
+    <div class="confirm-dialog">
+      <div class="confirm-icon">⚠️</div>
+      <div class="confirm-title">Delete User?</div>
+      <div class="confirm-body">This action is permanent. All data associated with this user will be removed.</div>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" (click)="showDeleteConfirm=false; deleteTargetId=null">Cancel</button>
+        <button class="btn btn-danger" (click)="doDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+}

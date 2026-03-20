@@ -1,0 +1,212 @@
+<div class="teams-page">
+
+  <!-- ══ Page Top Bar ══ -->
+  <div class="page-top-bar">
+    <h2 class="page-title">My Teams</h2>
+    <button *appHasRole="['ADMIN','MANAGER']" class="btn-teal" (click)="showCreateModal=true">
+      + Create Team
+    </button>
+  </div>
+
+  <!-- ══ Stats Strip ══ -->
+  <div class="stats-strip">
+    <div class="stat-card border-dblue">
+      <span class="stat-label">My Teams</span>
+      <span class="stat-value">{{ teams.length }}</span>
+    </div>
+    <div class="stat-card border-blue">
+      <span class="stat-label">Total Members</span>
+      <span class="stat-value">{{ totalMembers }}</span>
+    </div>
+    <div class="stat-card border-orange">
+      <span class="stat-label">Active Tasks</span>
+      <span class="stat-value">{{ activeTasks }}</span>
+    </div>
+  </div>
+
+  <!-- ══ Loading ══ -->
+  @if (loading) {
+    <div class="loading-center"><div class="spinner"></div></div>
+  }
+
+  <!-- ══ Team Cards Grid ══ -->
+  @if (!loading) {
+    <div class="teams-grid">
+      @for (team of teams; track team.id) {
+        <div class="team-card">
+          <span class="team-card-name">{{ team.name }}</span>
+          <div class="team-meta">
+            {{ (team.members?.length || 0) }} members<br>
+            Manager: {{ team.managerName || 'No manager' }}
+          </div>
+
+          <!-- Overlapping Avatars -->
+          <div class="member-chips">
+            @for (m of (team.members || []).slice(0,4); track m.id) {
+              <div class="avatar-circle"
+                   [style.background]="getAvatarColor(m.fullName)"
+                   [title]="m.fullName">{{ getInitials(m.fullName) }}</div>
+            }
+            @if ((team.members || []).length > 4) {
+              <div class="avatar-circle avatar-more">+{{ (team.members || []).length - 4 }}</div>
+            }
+          </div>
+
+          <!-- Active task pill -->
+          @if (team.activeTaskCount) {
+            <span class="active-task-pill">{{ team.activeTaskCount }} tasks active</span>
+          } @else {
+            <span class="active-task-pill" style="opacity: 0.5;">0 tasks active</span>
+          }
+
+          <!-- Actions -->
+          <div class="team-actions">
+            <button class="btn-card btn-view" (click)="viewTeam(team)">
+              {{ selectedTeam?.id === team.id ? 'Collapse' : 'View Team' }}
+            </button>
+            <button *appHasRole="['ADMIN','MANAGER']" class="btn-card btn-edit" (click)="openEdit(team)">Edit</button>
+            <button *appHasRole="['ADMIN','MANAGER']" class="btn-card btn-delete" (click)="confirmDelete(team.id)">Delete</button>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (teams.length === 0) {
+      <div style="text-align: center; color: #64748b; padding: 40px;">
+        <p>No teams yet. Create one to get started!</p>
+      </div>
+    }
+
+    <!-- ── Team Detail Panel (Expands below the grid) ── -->
+    @if (selectedTeam) {
+      <div class="team-detail-section mt-4">
+        <div class="detail-header">
+          <span class="detail-title">Team Detail — {{ selectedTeam.name }}</span>
+          <button *appHasRole="['ADMIN','MANAGER']" class="btn-teal">
+            + Add Member
+          </button>
+        </div>
+
+        @if (detailLoading) {
+          <div class="loading-center"><div class="spinner"></div></div>
+        }
+        @if (!detailLoading && teamDetail) {
+          <table class="detail-table">
+            <thead>
+              <tr><th>Member</th><th>Role</th><th>Email</th><th>Tasks Assigned</th><th>Joined</th><th></th></tr>
+            </thead>
+            <tbody>
+              @for (member of teamDetail.members; track member.id) {
+                <tr>
+                  <td>{{ member.fullName }}</td>
+                  <td>
+                    <span class="role-badge" [class]="getMemberRoleClass(member.role)">{{ member.role }}</span>
+                  </td>
+                  <td class="text-muted-sm">{{ member.email }}</td>
+                  <td class="text-muted-sm">{{ member.tasksAssigned ?? 0 }} tasks</td>
+                  <td class="text-muted-sm">{{ member.joinedAt | date:'MMM dd' }}</td>
+                  <td style="text-align: right;">
+                    <button *appHasRole="['ADMIN','MANAGER']" class="btn-remove"
+                            (click)="removeMember(selectedTeam.id, member.id)">Remove</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- ══ Create Team Modal ══ -->
+@if (showCreateModal) {
+  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && (showCreateModal=false)">
+    <div class="modal-box">
+      <div class="modal-header-bar">
+        <span>Create Team</span>
+        <button class="modal-close-btn" (click)="showCreateModal=false">✕</button>
+      </div>
+      <div class="modal-body-pad">
+        <div class="mb-3">
+          <label class="form-label">Team Name <span class="text-danger">*</span></label>
+          <input class="form-control" [(ngModel)]="newTeam.name" placeholder="e.g. Frontend Team" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" [(ngModel)]="newTeam.description" rows="2" placeholder="Optional description"></textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Add Members</label>
+          <input class="form-control" [(ngModel)]="memberSearch" (input)="searchMembers()" placeholder="Search by name or email..." />
+          @if (filteredUsers.length > 0) {
+            <div class="member-dropdown">
+              @for (u of filteredUsers; track u.id) {
+                <div class="member-dropdown-item" (click)="addMemberToList(u)">
+                  <div class="avatar-circle avatar-sm" [style.background]="getAvatarColor(u.fullName)">{{ getInitials(u.fullName) }}</div>
+                  <span>{{ u.fullName }}</span>
+                  <span class="text-muted" style="font-size:12px">{{ u.email }}</span>
+                </div>
+              }
+            </div>
+          }
+          <div class="selected-members mt-2">
+            @for (m of selectedMembers; track m.id) {
+              <span class="member-chip">
+                {{ m.fullName }}
+                <button (click)="removeMemberFromList(m.id)">×</button>
+              </span>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-bar">
+        <button class="btn btn-ghost" (click)="showCreateModal=false">Cancel</button>
+        <button class="btn btn-primary" (click)="createTeam()" [disabled]="createLoading">
+          {{ createLoading ? 'Creating...' : 'Create Team' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══ Edit Team Modal ══ -->
+@if (showEditModal) {
+  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && (showEditModal=false)">
+    <div class="modal-box">
+      <div class="modal-header-bar">
+        <span>Edit Team</span>
+        <button class="modal-close-btn" (click)="showEditModal=false">✕</button>
+      </div>
+      <div class="modal-body-pad">
+        <div class="mb-3">
+          <label class="form-label">Team Name</label>
+          <input class="form-control" [(ngModel)]="editTeamData.name" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          <textarea class="form-control" [(ngModel)]="editTeamData.description" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer-bar">
+        <button class="btn btn-ghost" (click)="showEditModal=false">Cancel</button>
+        <button class="btn btn-primary" (click)="saveEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══ Delete Confirm ══ -->
+@if (showDeleteConfirm) {
+  <div class="modal-overlay">
+    <div class="confirm-dialog">
+      <div class="confirm-icon">🗑️</div>
+      <div class="confirm-title">Delete Team?</div>
+      <div class="confirm-body">This action cannot be undone. All team data will be removed.</div>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" (click)="showDeleteConfirm=false; deleteTargetId=null">Cancel</button>
+        <button class="btn btn-danger" (click)="doDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+}

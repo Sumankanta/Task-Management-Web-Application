@@ -35,7 +35,7 @@ public class TaskAttachment {
     private Long fileSizeBytes;
 
     @Lob
-    @Column(name = "file_data", nullable = false)
+    @Column(name = "file_data", columnDefinition = "LONGBLOB")
     private byte[] fileData;
 
     @Column(name = "uploade_at")

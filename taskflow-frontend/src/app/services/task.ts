@@ -7,6 +7,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 export class TaskService {
 
   API = "http://localhost:8081/api/tasks";
+  AUTH_API = "http://localhost:8081/api/auth";
 
   constructor(private http: HttpClient) {}
 
@@ -34,6 +35,10 @@ export class TaskService {
 
   updateTask(id:number,task:any){
     return this.http.put(`${this.API}/${id}`,task,this.getHeaders())
+  }
+
+  getUsers() {
+    return this.http.get<any[]>(`${this.AUTH_API}/users`, this.getHeaders());
   }
 
 }

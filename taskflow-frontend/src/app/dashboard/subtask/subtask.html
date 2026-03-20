@@ -1,0 +1,76 @@
+<div class="subtask-section">
+  <div class="section-header">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+    </svg>
+    Subtasks
+    @if (totalCount > 0) {
+      <span class="subtask-count">{{ completedCount }}/{{ totalCount }}</span>
+    }
+  </div>
+
+  <!-- Progress bar -->
+  @if (totalCount > 0) {
+    <div class="subtask-progress">
+      <div class="progress-wrap">
+        <div class="progress-fill" [class.done]="progressPercent === 100" [class.partial]="progressPercent < 100"
+             [style.width.%]="progressPercent"></div>
+      </div>
+      @if (progressPercent === 100) {
+        <span class="progress-label all-done">✓ All done!</span>
+      } @else {
+        <span class="progress-label">{{ progressPercent }}%</span>
+      }
+    </div>
+  }
+
+  @if (loading) {
+    <div class="loading-row"><div class="spinner spinner-sm"></div></div>
+  }
+
+  <!-- Subtask List -->
+  @if (!loading) {
+    <div class="subtask-list">
+      @for (subtask of subtasks; track subtask.id) {
+        <div class="subtask-row" [class.completed]="subtask.isComplete || subtask.completed">
+          <label class="subtask-check-wrap">
+            <input type="checkbox"
+                   [checked]="subtask.isComplete || subtask.completed"
+                   [disabled]="isViewer"
+                   (change)="toggle(subtask)"
+                   class="subtask-checkbox" />
+          </label>
+          <span class="subtask-title">{{ subtask.title }}</span>
+          @if (subtask.assigneeName) {
+            <div class="assignee-chip"
+                 [style.background]="getAvatarColor(subtask.assigneeName)"
+                 [title]="subtask.assigneeName">
+              {{ getInitials(subtask.assigneeName) }}
+            </div>
+          }
+          @if (!isViewer && canDelete(subtask)) {
+            <button class="subtask-delete" (click)="deleteSubtask(subtask)" title="Delete subtask">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          }
+        </div>
+      }
+      @if (subtasks.length === 0 && !isViewer) {
+        <div class="empty-subtasks">No subtasks yet. Add one below!</div>
+      }
+    </div>
+
+    <!-- Add subtask input -->
+    @if (!isViewer) {
+      <div class="add-subtask-row">
+        <input class="add-subtask-input"
+               [(ngModel)]="newSubtaskTitle"
+               placeholder="Add a subtask..."
+               (keydown.enter)="addSubtask()" />
+        <button class="add-subtask-btn" (click)="addSubtask()" [disabled]="!newSubtaskTitle.trim()">+</button>
+      </div>
+    }
+  }
+</div>

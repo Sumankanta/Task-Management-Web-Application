@@ -1,0 +1,78 @@
+<div class="attachment-section">
+  <div class="section-header">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+    </svg>
+    Attachments
+    <span class="attach-count">({{ attachments.length }}/5)</span>
+  </div>
+
+  @if (loading) {
+    <div class="loading-row"><div class="spinner spinner-sm"></div><span>Loading files...</span></div>
+  }
+
+  <!-- Upload Zone -->
+  @if (!loading && canUpload) {
+    @if (isMaxReached) {
+      <div class="max-reached-banner">Maximum 5 files reached. Delete a file to upload more.</div>
+    } @else {
+      <div
+        class="upload-zone"
+        [class.drag-over]="dragOver"
+        (dragover)="$event.preventDefault(); dragOver=true"
+        (dragleave)="dragOver=false"
+        (drop)="onDrop($event)">
+        <input type="file" id="fileInput-{{taskId}}" (change)="onFileChange($event)" style="display:none"
+               accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" />
+        @if (!uploading) {
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p class="upload-text">Drag &amp; drop or <label [for]="'fileInput-'+taskId" class="upload-link">choose file</label></p>
+          <p class="allowed-types">.jpg .jpeg .png .gif · .pdf · .doc .docx · .xls .xlsx · .txt .zip</p>
+        } @else {
+          <div class="uploading-row">
+            <div class="spinner spinner-sm"></div>
+            <span>Saving to database...</span>
+          </div>
+        }
+      </div>
+      @if (uploadError) {
+        <div class="upload-error">⚠️ {{ uploadError }}</div>
+      }
+    }
+  }
+
+  <!-- Files List -->
+  @if (!loading && attachments.length > 0) {
+    <div class="attachments-list">
+      @for (att of attachments; track att.id) {
+        <div class="attachment-row">
+          <div class="file-icon" [style.color]="fileTypeColor(att.mimeType)">{{ fileTypeIcon(att.mimeType) }}</div>
+          <div class="file-info">
+            <span class="file-name">{{ att.originalFileName || att.fileName }}</span>
+            <span class="file-meta">{{ att.mimeType }} · {{ formatSize(att.fileSize) }} · {{ att.uploaderName }} · {{ att.uploadedAt | date:'mediumDate' }}</span>
+          </div>
+          <div class="file-actions">
+            <button class="btn-icon-action" (click)="download(att)" title="Download">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </button>
+            @if (canDelete(att)) {
+              <button class="btn-icon-action btn-icon-danger" (click)="deleteAttachment(att)" title="Delete">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/>
+                </svg>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!loading && attachments.length === 0 && !canUpload) {
+    <div class="empty-attach">No files attached to this task.</div>
+  }
+</div>

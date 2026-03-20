@@ -2,6 +2,7 @@ package com.infy.tmwa.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.*;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -32,7 +33,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(List.of("http://localhost:4200"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")); // ← add PATCH + OPTIONS
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
@@ -50,7 +51,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 //                        .requestMatchers("/api/activity", "/api/tasks/summary").authenticated()
 //                        .requestMatchers("/api/auth/**").permitAll()
-
+                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                 // Public — login + register
                                 .requestMatchers("/api/auth/**").permitAll()
                                 // Admin only

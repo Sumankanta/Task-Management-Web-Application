@@ -1,5 +1,5 @@
-// src/app/dashboard/dashboard.ts
-import { Component, OnInit } from '@angular/core';
+// src/app/dashboard/dashboard.ts  (Week 2 update)
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { switchMap } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,22 +7,30 @@ import { NavbarComponent } from '../shared/navbar/navbar';
 import { TaskService } from '../services/task';
 import { AuthService } from '../services/auth';
 import { CommentService } from '../services/comment';
+import { SubtaskService } from '../services/subtask';
 import { RelativeTimePipe } from '../pipes/relative-time-pipe';
 import { TaskDueDatePipe } from '../pipes/task-due-date-pipe';
 import { ActivityEntry, ActivityService } from '../services/activity';
 import { TaskSummary, AnalyticsService } from '../services/analytics';
+import { AttachmentComponent } from './attachment/attachment';
+import { SubtaskComponent } from './subtask/subtask';
+import { TimeTrackingComponent } from './time-tracking/time-tracking';
 
-declare const Chart: any;  // loaded via CDN in index.html
+declare const Chart: any;
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
+  encapsulation: ViewEncapsulation.None,
   imports: [
     CommonModule,
     FormsModule,
     NavbarComponent,
     TaskDueDatePipe,
-    RelativeTimePipe
+    RelativeTimePipe,
+    AttachmentComponent,
+    SubtaskComponent,
+    TimeTrackingComponent
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css']
@@ -34,6 +42,12 @@ export class DashboardComponent implements OnInit {
   users: any[] = [];
   comments: any[] = [];
 
+  // ── Task detail modal ──
+  showDetailModal = false;
+  detailTask: any = null;
+  detailTab: 'comments' | 'subtasks' | 'attachments' | 'time' = 'comments';
+  subtaskSummaries: Record<number, { total: number; completed: number }> = {};
+
   // ── State ──
   activeTask: number | null = null;
   editingTaskId: number | null = null;
@@ -44,21 +58,21 @@ export class DashboardComponent implements OnInit {
   showCreateModal = false;
   showEditModal = false;
 
-  // ── F-EXT-03: Priority sort ──
+  // ── Priority sort ──
   sortByPriority = false;
 
-  // ── F-EXT-04: Analytics ──
+  // ── Analytics ──
   showAnalytics = false;
   analyticsLoaded = false;
   summary: TaskSummary | null = null;
   private statusChart: any = null;
   private priorityChart: any = null;
 
-  // ── F-EXT-05: Activity Feed ──
+  // ── Activity Feed ──
   activityFeed: ActivityEntry[] = [];
   activityLoading = false;
 
-  // ── F-EXT-06: Due date banner ──
+  // ── Due date banner ──
   bannerDismissed = false;
 
   // ── Forms ──
@@ -79,11 +93,11 @@ export class DashboardComponent implements OnInit {
     private auth: AuthService,
     private commentService: CommentService,
     private analyticsService: AnalyticsService,
-    private activityService: ActivityService
+    private activityService: ActivityService,
+    private subtaskService: SubtaskService
   ) { }
 
   ngOnInit() {
-    // Restore dark mode on dashboard load — navbar may not have run yet in some route scenarios
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark');
     }
@@ -98,14 +112,39 @@ export class DashboardComponent implements OnInit {
 
   loadTasks() {
     this.taskService.getTasks().subscribe({
-      next: (res: any) => this.tasks = res,
+      next: (res: any) => {
+        this.tasks = res;
+        this.loadSubtaskSummaries();
+      },
       error: (err) => console.error('Error loading tasks', err)
     });
   }
 
+  loadSubtaskSummaries() {
+    this.tasks.forEach(task => {
+      this.subtaskService.getSubtaskSummary(task.id).subscribe({
+        next: summary => {
+          this.subtaskSummaries = { ...this.subtaskSummaries, [task.id]: summary };
+        },
+        error: () => { }
+      });
+    });
+  }
+
+  getSubtaskSummary(taskId: number) {
+    return this.subtaskSummaries[taskId];
+  }
+
+  getSubtaskProgress(taskId: number): number {
+    const s = this.subtaskSummaries[taskId];
+    if (!s || s.total === 0) return 0;
+    return Math.round((s.completed / s.total) * 100);
+  }
+
   loadUsers() {
-    this.auth.getUsers().subscribe({
-      next: (res: any) => this.users = res
+    this.taskService.getUsers().subscribe({
+      next: (res: any) => this.users = res,
+      error: (err) => console.error('Error loading users', err)
     });
   }
 
@@ -125,9 +164,10 @@ export class DashboardComponent implements OnInit {
 
   deleteTask(id: number) {
     this.taskService.deleteTask(id).subscribe(() => {
-      this.loadTasks();
+      this.tasks = this.tasks.filter(t => t.id !== id);
       if (this.showAnalytics) this.reloadAnalytics();
       this.loadActivityFeed();
+      if (this.detailTask?.id === id) this.closeDetailModal();
     });
   }
 
@@ -159,6 +199,27 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  // ── Task Detail Modal ──
+  openDetail(task: any) {
+    this.detailTask = task;
+    this.detailTab = 'comments';
+    this.showDetailModal = true;
+    this.activeTask = task.id;
+    this.commentService.getComments(task.id).subscribe(res => { this.comments = res; });
+  }
+
+  closeDetailModal() {
+    this.showDetailModal = false;
+    this.detailTask = null;
+    this.activeTask = null;
+  }
+
+  onSubtaskChanged(taskId: number) {
+    this.subtaskService.getSubtaskSummary(taskId).subscribe(summary => {
+      this.subtaskSummaries = { ...this.subtaskSummaries, [taskId]: summary };
+    });
+  }
+
   closeCreateModal(e: MouseEvent) {
     if ((e.target as HTMLElement).classList.contains('modal-overlay'))
       this.showCreateModal = false;
@@ -169,8 +230,13 @@ export class DashboardComponent implements OnInit {
       this.cancelEdit();
   }
 
+  closeDetailOverlay(e: MouseEvent) {
+    if ((e.target as HTMLElement).classList.contains('modal-overlay'))
+      this.closeDetailModal();
+  }
+
   // ════════════════════════════════
-  // FILTER + SORT  (F-EXT-03)
+  // FILTER + SORT
   // ════════════════════════════════
 
   setFilter(status: string) {
@@ -192,12 +258,10 @@ export class DashboardComponent implements OnInit {
     return list;
   }
 
-  togglePrioritySort() {
-    this.sortByPriority = !this.sortByPriority;
-  }
+  togglePrioritySort() { this.sortByPriority = !this.sortByPriority; }
 
   // ════════════════════════════════
-  // F-EXT-06: Due Date helpers
+  // Due Date helpers
   // ════════════════════════════════
 
   getDueDateState(dueDate: string, status: string): 'overdue' | 'today' | 'done' | 'upcoming' {
@@ -229,7 +293,7 @@ export class DashboardComponent implements OnInit {
   dismissBanner() { this.bannerDismissed = true; }
 
   // ════════════════════════════════
-  // F-EXT-04: Analytics
+  // Analytics
   // ════════════════════════════════
 
   toggleAnalytics() {
@@ -258,12 +322,9 @@ export class DashboardComponent implements OnInit {
 
   private drawCharts() {
     if (!this.summary) return;
-
     if (this.statusChart) { this.statusChart.destroy(); this.statusChart = null; }
     if (this.priorityChart) { this.priorityChart.destroy(); this.priorityChart = null; }
 
-    // ── Status doughnut ──
-    // Uses flat fields: summary.todo, summary.inProgress, summary.done
     const statusCanvas = document.getElementById('statusChart') as HTMLCanvasElement;
     if (statusCanvas) {
       this.statusChart = new Chart(statusCanvas, {
@@ -271,31 +332,18 @@ export class DashboardComponent implements OnInit {
         data: {
           labels: ['To-Do', 'In Progress', 'Done'],
           datasets: [{
-            data: [
-              this.summary!.todo,
-              this.summary!.inProgress,
-              this.summary!.done
-            ],
+            data: [this.summary!.todo, this.summary!.inProgress, this.summary!.done],
             backgroundColor: ['#6366f1', '#f59e0b', '#10b981'],
-            borderWidth: 0,
-            hoverOffset: 6
+            borderWidth: 0, hoverOffset: 6
           }]
         },
         options: {
-          maintainAspectRatio: false,   // ← lets CSS control height
-          cutout: '70%',
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: { padding: 14, font: { size: 11 }, boxWidth: 10 }
-            }
-          }
+          maintainAspectRatio: false, cutout: '70%',
+          plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 }, boxWidth: 10 } } }
         }
       });
     }
 
-    // ── Priority bar ──
-    // Uses flat fields: summary.high, summary.medium, summary.low
     const priorityCanvas = document.getElementById('priorityChart') as HTMLCanvasElement;
     if (priorityCanvas) {
       this.priorityChart = new Chart(priorityCanvas, {
@@ -304,29 +352,17 @@ export class DashboardComponent implements OnInit {
           labels: ['High', 'Medium', 'Low'],
           datasets: [{
             label: 'Tasks',
-            data: [
-              this.summary!.high,
-              this.summary!.medium,
-              this.summary!.low
-            ],
+            data: [this.summary!.high, this.summary!.medium, this.summary!.low],
             backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
-            borderRadius: 8,
-            borderSkipped: false
+            borderRadius: 8, borderSkipped: false
           }]
         },
         options: {
-          maintainAspectRatio: false,   // ← lets CSS control height
+          maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { stepSize: 1, font: { size: 11 } },
-              grid: { color: 'rgba(0,0,0,0.04)' }
-            },
-            x: {
-              grid: { display: false },
-              ticks: { font: { size: 11 } }
-            }
+            y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.04)' } },
+            x: { grid: { display: false }, ticks: { font: { size: 11 } } }
           }
         }
       });
@@ -334,7 +370,7 @@ export class DashboardComponent implements OnInit {
   }
 
   // ════════════════════════════════
-  // F-EXT-05: Activity Feed
+  // Activity Feed
   // ════════════════════════════════
 
   loadActivityFeed() {
@@ -345,48 +381,29 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  // Map actionCode → colour class
   actionColor(code: string): string {
     const map: Record<string, string> = {
-      TASK_CREATED: 'act-green',
-      TASK_STATUS_CHANGED: 'act-amber',
-      TASK_ASSIGNED: 'act-purple',
-      TASK_PRIORITY_CHANGED: 'act-red',
-      COMMENT_ADDED: 'act-blue',
-      TASK_DELETED: 'act-grey'
+      TASK_CREATED: 'act-green', TASK_STATUS_CHANGED: 'act-amber',
+      TASK_ASSIGNED: 'act-purple', TASK_PRIORITY_CHANGED: 'act-red',
+      COMMENT_ADDED: 'act-blue', TASK_DELETED: 'act-grey'
     };
     return map[code] ?? 'act-grey';
   }
 
   // ════════════════════════════════
-  // COMMENTS
+  // Comments
   // ════════════════════════════════
-
-  toggleComments(taskId: number) {
-    if (this.activeTask === taskId) { this.activeTask = null; return; }
-    this.activeTask = taskId;
-    this.commentService.getComments(taskId).subscribe(res => { this.comments = res; });
-  }
 
   postComment(taskId: number) {
     if (!this.newComment.trim()) return;
     const body = this.newComment;
-    this.newComment = ''; // clear immediately
+    this.newComment = '';
 
-    // FIX: switchMap chains post → getComments in ONE stream.
-    // Old nested subscribe caused the comment list to reload in a separate
-    // change detection cycle — requiring a second click to see the update.
     this.commentService.postComment(taskId, { body }).pipe(
       switchMap(() => this.commentService.getComments(taskId))
     ).subscribe({
-      next: (res) => {
-        this.comments = res;     // same CD cycle → UI updates immediately
-        this.loadActivityFeed();
-      },
-      error: (err) => {
-        console.error('Post comment error', err);
-        this.newComment = body;  // restore text if request failed
-      }
+      next: (res) => { this.comments = res; this.loadActivityFeed(); },
+      error: (err) => { console.error('Post comment error', err); this.newComment = body; }
     });
   }
 }

@@ -1,0 +1,115 @@
+.subtask-section { padding: 4px 0; }
+
+.section-header {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 600;
+  color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+
+.subtask-count {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 99px;
+  padding: 1px 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.subtask-progress {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px;
+}
+
+.subtask-progress .progress-wrap { flex: 1; }
+
+.progress-label {
+  font-size: 12px; color: var(--text-muted); flex-shrink: 0; min-width: 36px;
+}
+
+.all-done { color: var(--success); font-weight: 600; }
+
+.loading-row {
+  display: flex; justify-content: center; padding: 16px;
+}
+
+.subtask-list { display: flex; flex-direction: column; gap: 2px; }
+
+.subtask-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 8px;
+  transition: background 0.15s;
+}
+.subtask-row:hover { background: var(--bg-primary); }
+
+.subtask-row.completed { background: rgba(16,185,129,0.06); }
+.subtask-row.completed .subtask-title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.subtask-check-wrap { display: flex; align-items: center; cursor: pointer; }
+
+.subtask-checkbox {
+  width: 16px; height: 16px; cursor: pointer;
+  accent-color: var(--success);
+}
+
+.subtask-title { flex: 1; font-size: 14px; color: var(--text-primary); }
+
+.assignee-chip {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+
+.subtask-delete {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); padding: 4px;
+  border-radius: 4px; display: flex;
+  transition: color 0.15s;
+  opacity: 0;
+}
+.subtask-row:hover .subtask-delete { opacity: 1; }
+.subtask-delete:hover { color: var(--danger); }
+
+.empty-subtasks {
+  padding: 16px; text-align: center;
+  color: var(--text-muted); font-size: 13px;
+}
+
+.add-subtask-row {
+  display: flex; gap: 8px;
+  margin-top: 10px;
+}
+
+.add-subtask-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.add-subtask-input:focus { border-color: var(--accent); }
+
+.add-subtask-btn {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.add-subtask-btn:hover { background: var(--accent-hover); }
+.add-subtask-btn:disabled { opacity: 0.4; cursor: not-allowed; }

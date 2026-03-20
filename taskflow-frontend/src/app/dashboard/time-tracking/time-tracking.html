@@ -1,0 +1,108 @@
+<div class="tt-section">
+
+  <!-- Header + Total -->
+  <div class="tt-header">
+    <div class="section-header">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      Time Tracking
+    </div>
+    <div class="total-pill">Total: <strong>{{ totalFormatted }}</strong></div>
+  </div>
+
+  <!-- Timer Display -->
+  @if (!isViewer) {
+    <div class="timer-panel">
+      <div class="timer-display" [class.running]="timerRunning">{{ timerDisplay }}</div>
+      <div class="timer-btns">
+        @if (!timerRunning) {
+          <button class="btn btn-primary" (click)="startTimer()">▶ Start Timer</button>
+        } @else {
+          <button class="btn btn-danger" (click)="stopTimer()">■ Stop Timer</button>
+        }
+        <button class="btn btn-ghost btn-sm" (click)="showManualForm = !showManualForm">
+          {{ showManualForm ? '▲ Hide' : '+ Log Manually' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Manual Form -->
+    @if (showManualForm) {
+      <div class="manual-form">
+        <div class="manual-row">
+          <div class="manual-field">
+            <label>Hours</label>
+            <input type="number" class="form-control" [(ngModel)]="manualHours" min="0" max="99" />
+          </div>
+          <div class="manual-field">
+            <label>Minutes</label>
+            <input type="number" class="form-control" [(ngModel)]="manualMinutes" min="0" max="59" />
+          </div>
+          <div class="manual-field">
+            <label>Date</label>
+            <input type="date" class="form-control" [(ngModel)]="manualDate" />
+          </div>
+          <div class="manual-field flex-2">
+            <label>Note <span class="opt">(optional)</span></label>
+            <input class="form-control" [(ngModel)]="manualNote" placeholder="e.g. Code review" />
+          </div>
+        </div>
+        <div class="d-flex gap-2 mt-2">
+          <button class="btn btn-primary btn-sm" (click)="submitManual()">Log Time</button>
+          <button class="btn btn-ghost btn-sm" (click)="showManualForm=false">Cancel</button>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Time Logs Table -->
+  @if (loading) {
+    <div class="loading-row"><div class="spinner spinner-sm"></div></div>
+  }
+
+  @if (!loading && timeLogs.length > 0) {
+    <div class="logs-table-wrap">
+      <table class="logs-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Duration</th>
+            <th>Logged By</th>
+            <th>Note</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (log of timeLogs; track log.id) {
+            <tr>
+              <td>
+                <span class="type-badge" [class.type-timer]="!log.isManual" [class.type-manual]="log.isManual">
+                  {{ log.isManual ? 'Manual' : 'Timer' }}
+                </span>
+              </td>
+              <td class="log-date">{{ log.logDate || log.startTime | date:'mediumDate' }}</td>
+              <td class="log-duration">{{ formatDuration(log.durationMinutes) }}</td>
+              <td class="log-by">{{ log.loggedByName || log.userName || '—' }}</td>
+              <td class="log-note">{{ log.note || '—' }}</td>
+              <td>
+                @if (log.isManual) {
+                  <button class="btn-icon-action btn-icon-danger" (click)="deleteLog(log)" title="Delete">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+                    </svg>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (!loading && timeLogs.length === 0) {
+    <div class="empty-logs">No time logged yet.</div>
+  }
+</div>
