@@ -15,6 +15,7 @@ import { TaskSummary, AnalyticsService } from '../services/analytics';
 import { AttachmentComponent } from './attachment/attachment';
 import { SubtaskComponent } from './subtask/subtask';
 import { TimeTrackingComponent } from './time-tracking/time-tracking';
+import { TeamService } from '../services/team';
 
 declare const Chart: any;
 
@@ -41,6 +42,7 @@ export class DashboardComponent implements OnInit {
   tasks: any[] = [];
   users: any[] = [];
   comments: any[] = [];
+  teams: any[] = [];
 
   // ── Task detail modal ──
   showDetailModal = false;
@@ -53,6 +55,7 @@ export class DashboardComponent implements OnInit {
   editingTaskId: number | null = null;
   filter = 'ALL';
   currentFilter = 'ALL';
+  currentTeamFilter: number | null = null;
 
   // ── Modals ──
   showCreateModal = false;
@@ -78,12 +81,12 @@ export class DashboardComponent implements OnInit {
   // ── Forms ──
   newTask: any = {
     title: '', description: '', dueDate: '',
-    status: 'TODO', assignedTo: null, priority: 'MEDIUM'
+    status: 'TODO', assignedTo: null, teamId: null, priority: 'MEDIUM'
   };
 
   editTask: any = {
     title: '', description: '', dueDate: '',
-    status: '', assignedTo: null, priority: 'MEDIUM'
+    status: '', assignedTo: null, teamId: null, priority: 'MEDIUM'
   };
 
   newComment = '';
@@ -94,7 +97,8 @@ export class DashboardComponent implements OnInit {
     private commentService: CommentService,
     private analyticsService: AnalyticsService,
     private activityService: ActivityService,
-    private subtaskService: SubtaskService
+    private subtaskService: SubtaskService,
+    private teamService: TeamService
   ) { }
 
   ngOnInit() {
@@ -103,6 +107,7 @@ export class DashboardComponent implements OnInit {
     }
     this.loadTasks();
     this.loadUsers();
+    this.loadTeams();
     this.loadActivityFeed();
   }
 
@@ -145,6 +150,13 @@ export class DashboardComponent implements OnInit {
     this.taskService.getUsers().subscribe({
       next: (res: any) => this.users = res,
       error: (err) => console.error('Error loading users', err)
+    });
+  }
+
+  loadTeams() {
+    this.teamService.getTeams().subscribe({
+      next: (res: any) => this.teams = res,
+      error: (err) => console.error('Error loading teams', err)
     });
   }
 
@@ -244,16 +256,20 @@ export class DashboardComponent implements OnInit {
     this.currentFilter = status;
   }
 
+  onTeamFilterChange() { }
+
   filteredTasks() {
-    let list = this.filter === 'ALL'
+    let list = this.currentFilter === 'ALL'
       ? [...this.tasks]
-      : this.tasks.filter(t => t.status === this.filter);
+      : this.tasks.filter(t => t.status === this.currentFilter);
+
+    if (this.currentTeamFilter !== null) {
+      list = list.filter(t => t.teamId == this.currentTeamFilter);
+    }
 
     if (this.sortByPriority) {
       const order: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
-      list.sort((a, b) =>
-        (order[a.priority ?? 'MEDIUM'] ?? 1) - (order[b.priority ?? 'MEDIUM'] ?? 1)
-      );
+      list.sort((a,b) => (order[a.priority ?? 'MEDIUM'] ?? 1) - (order[b.priority ?? 'MEDIUM'] ?? 1));
     }
     return list;
   }

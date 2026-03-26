@@ -84,16 +84,43 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Avatar + dropdown */
-.nav-avatar {
-  width: 36px !important;
-  height: 36px !important;
-  font-size: 13px !important;
+/* User Info Box */
+.nav-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   cursor: pointer;
-  border: 2px solid rgba(255,255,255,0.25);
+}
+
+.nav-user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+  transition: opacity 0.2s;
+}
+
+.nav-avatar {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 12px !important;
+  border: 2px solid rgba(255,255,255,0.2);
   transition: border-color 0.2s;
 }
-.nav-avatar:hover { border-color: rgba(255,255,255,0.6); }
+.nav-user-info:hover .nav-avatar { border-color: rgba(255,255,255,0.5); }
+
+/* Role Badges mapping (aligned with global/admin styles) */
+.role-badge {
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.role-admin   { background: #ef4444; color: #fff; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+.role-manager { background: #8b5cf6; color: #fff; box-shadow: 0 0 10px rgba(139, 92, 246, 0.4); }
+.role-member  { border: 1.5px solid #3b82f6; color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+.role-viewer  { border: 1.5px solid #64748b; color: #64748b; background: rgba(100, 116, 139, 0.1); }
 
 .avatar-dropdown-wrap {
   position: relative;

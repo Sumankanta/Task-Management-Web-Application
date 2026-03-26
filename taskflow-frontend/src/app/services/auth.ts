@@ -9,6 +9,7 @@ import { tap } from 'rxjs';
 export class AuthService {
 
   API = 'http://localhost:8081/api/auth'
+  BASE = 'http://localhost:8081/api';
 
   constructor(private http: HttpClient) { }
 
@@ -66,8 +67,12 @@ export class AuthService {
     return roles.includes(user.role);
   }
 
+  // getUsers() {
+  //   return this.http.get<any[]>("http://localhost:8081/api/users")
+  // }
+
   getUsers() {
-    return this.http.get<any[]>("http://localhost:8081/api/users")
+    return this.http.get<any[]>(`${this.BASE}/auth/users`);
   }
 
   updateProfile(data: any) {

@@ -4,14 +4,11 @@
   <aside class="settings-sidebar">
     <div class="sidebar-brand">⚙️ Settings</div>
     <nav class="sidebar-nav">
-      <button class="sidebar-link" [class.active]="activeTab==='profile'" (click)="setTab('profile')">👤 Profile</button>
-      <button class="sidebar-link" [class.active]="activeTab==='security'" (click)="setTab('security')">🔒 Security</button>
-      <button class="sidebar-link" [class.active]="activeTab==='theme'" (click)="setTab('theme')">🎨 Theme</button>
-      <button class="sidebar-link" [class.active]="activeTab==='notifications'" (click)="setTab('notifications')">🔔 Notifications</button>
-      @if (false) { <!-- hidden always for non-admin via tabs only -->
-        <ng-container></ng-container>
-      }
-      <button *appHasRole="['ADMIN','MANAGER']" class="sidebar-link" [class.active]="activeTab==='team'" (click)="setTab('team')">👥 Team Settings</button>
+      <button class="sidebar-link" [class.active]="activeTab==='profile'" (click)="setTab('profile')">Profile</button>
+      <button class="sidebar-link" [class.active]="activeTab==='security'" (click)="setTab('security')">Security</button>
+      <button class="sidebar-link" [class.active]="activeTab==='theme'" (click)="setTab('theme')">Theme</button>
+      <button class="sidebar-link" [class.active]="activeTab==='notifications'" (click)="setTab('notifications')">Notifications</button>
+      <button *appHasRole="['ADMIN','MANAGER']" class="sidebar-link" [class.active]="activeTab==='team'" (click)="setTab('team')">Team Settings</button>
     </nav>
   </aside>
 
@@ -232,7 +229,7 @@
           
           <div class="team-sec-header">
             <h3 class="team-sec-title">Team Settings — My Teams</h3>
-            <button class="btn btn-primary" style="background:#0f766e">
+            <button class="btn btn-primary" style="background:#0f766e" (click)="openTeamCreate()">
               + Create Team
             </button>
           </div>
@@ -310,6 +307,31 @@
         <button class="btn btn-danger" (click)="deleteAccount()" [disabled]="deleteEmailConfirm !== currentUser?.email">
           Delete My Account
         </button>
+      </div>
+    </div>
+  </div>
+}
+<!-- ══ Team Create Modal ══ -->
+@if (showTeamCreateModal) {
+  <div class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header-bar">
+        <span>Create New Team</span>
+        <button class="modal-close-btn" (click)="showTeamCreateModal=false">✕</button>
+      </div>
+      <div class="modal-body-pad">
+        <div class="form-group mb-3">
+          <label>Team Name *</label>
+          <input class="form-control" [(ngModel)]="newTeamData.name" placeholder="e.g. Design Team" />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea class="form-control" [(ngModel)]="newTeamData.description" rows="2" placeholder="Briefly describe the team's purpose"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer-bar">
+        <button class="btn btn-ghost" (click)="showTeamCreateModal=false">Cancel</button>
+        <button class="btn btn-primary" (click)="createTeam()">Create Team</button>
       </div>
     </div>
   </div>

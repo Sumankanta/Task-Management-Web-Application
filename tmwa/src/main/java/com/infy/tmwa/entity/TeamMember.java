@@ -1,12 +1,12 @@
 package com.infy.tmwa.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
-// ── Junction table: users ↔ teams ──
-// Composite PK on (team_id, user_id)
 @Entity
 @Table(name = "team_members")
 @Getter @Setter
@@ -18,11 +18,13 @@ public class TeamMember {
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id", nullable = false)
+    @JsonIgnore
     private Team team;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"password", "passwordHash", "teamMembers", "hibernateLazyInitializer"})
     private User user;
 
     @Column(name = "joined_at")

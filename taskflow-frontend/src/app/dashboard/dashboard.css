@@ -442,6 +442,10 @@ body {
   box-shadow: 0 2px 8px rgba(99,102,241,0.35);
 }
 
+.team-filter-wrap { margin-left: 12px; border-left: 1px solid var(--border); padding-left: 14px; display: flex; align-items: center; }
+.form-select-sm { background: var(--bg-card); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 13px; padding: 7px 10px; cursor: pointer; outline: none; transition: border-color 0.2s; }
+.form-select-sm:hover { border-color: var(--accent); }
+
 /* Make All dot visible — was same colour as bg */
 .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .dot-all      { background: #64748b; border: 1.5px solid #94a3b8; }
@@ -967,6 +971,7 @@ body.dark .filters button.active {
 }
 
 .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.modal-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 
 .modal-field { display: flex; flex-direction: column; gap: 6px; }
 

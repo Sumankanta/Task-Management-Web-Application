@@ -1,5 +1,6 @@
 package com.infy.tmwa.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,17 +25,17 @@ public class Team {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    // ── Manager owns this team — ON DELETE CASCADE ──
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id", nullable = false)
+    @JsonIgnoreProperties({"password", "passwordHash", "teams", "teamMembers", "hibernateLazyInitializer"})
     private User manager;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // ── Members via junction table ──
     @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonIgnoreProperties({"team", "hibernateLazyInitializer"})
     private List<TeamMember> members = new ArrayList<>();
 
     @PrePersist

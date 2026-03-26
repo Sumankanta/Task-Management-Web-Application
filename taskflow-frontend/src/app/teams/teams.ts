@@ -40,6 +40,12 @@ export class TeamsComponent implements OnInit {
   // Confirm delete
   showDeleteConfirm = false;
   deleteTargetId: number | null = null;
+  showAddMemberSearch = false;
+
+  showAnalytics = false;
+  sortByPriority = false;
+  analyticsLoaded = false;
+  summary: any = null;
 
   constructor(
     private teamService: TeamService,
@@ -47,17 +53,54 @@ export class TeamsComponent implements OnInit {
     private toast: ToastService
   ) { }
 
+  // ngOnInit() {
+  //   this.loadTeams();
+  //   this.auth.getUsers().subscribe(users => this.allUsers = users);
+  // }
+
   ngOnInit() {
     this.loadTeams();
-    this.auth.getUsers().subscribe(users => this.allUsers = users);
+    this.auth.getUsers().subscribe({
+      next: users => this.allUsers = users,
+      error: (err) => {
+        console.warn('Could not load users list:', err);
+        this.allUsers = [];
+      }
+    });
   }
 
   loadTeams() {
     this.loading = true;
     this.teamService.getTeams().subscribe({
-      next: teams => { this.teams = teams; this.loading = false; },
+      next: teams => {
+        this.teams = teams;
+        this.loading = false;
+        if (this.showAnalytics) this.reloadAnalytics();
+      },
       error: () => { this.toast.show('Failed to load teams', 'error'); this.loading = false; }
     });
+  }
+
+  toggleAnalytics() {
+    this.showAnalytics = !this.showAnalytics;
+    if (this.showAnalytics) this.reloadAnalytics();
+  }
+
+  reloadAnalytics() {
+    // This could call a specialized TeamAnalytics service
+    // For now, let's simulate loading state
+    this.analyticsLoaded = false;
+    setTimeout(() => {
+      this.summary = { totalTeams: this.teams.length, totalMembers: this.totalMembers, activeTasks: this.activeTasks };
+      this.analyticsLoaded = true;
+    }, 600);
+  }
+
+  toggleSort() { this.sortByPriority = !this.sortByPriority; }
+
+  get sortedTeams() {
+    if (!this.sortByPriority) return this.teams;
+    return [...this.teams].sort((a, b) => (b.activeTaskCount || 0) - (a.activeTaskCount || 0));
   }
 
   get totalMembers(): number {
@@ -161,6 +204,19 @@ export class TeamsComponent implements OnInit {
         this.loadTeams();
       },
       error: () => { this.toast.show('Failed to create team', 'error'); this.createLoading = false; }
+    });
+  }
+
+  addMember(teamId: number, user: any) {
+    this.teamService.addMember(teamId, { userId: user.id }).subscribe({
+      next: () => {
+        this.toast.show(`${user.fullName} joined team`, 'success');
+        this.showAddMemberSearch = false;
+        this.memberSearch = '';
+        this.filteredUsers = [];
+        this.viewTeam(this.selectedTeam);
+      },
+      error: () => this.toast.show('Failed to add member', 'error')
     });
   }
 

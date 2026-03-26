@@ -30,7 +30,7 @@ export class SettingsComponent implements OnInit {
     currentPasswordForEmail: ''
   };
   bioMax = 200;
-  avatarColors = ['#6366f1','#10b981','#f59e0b','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316'];
+  avatarColors = ['#6366f1', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
   saveProfileLoading = false;
   showDeleteAccountModal = false;
   deleteEmailConfirm = '';
@@ -45,25 +45,27 @@ export class SettingsComponent implements OnInit {
   // ── Theme ──
   themes: { value: ThemeMode; label: string; icon: string }[] = [
     { value: 'LIGHT', label: 'Light', icon: '☀️' },
-    { value: 'DARK',  label: 'Dark',  icon: '🌙' },
-    { value: 'SYSTEM',label: 'System',icon: '🖥️' }
+    { value: 'DARK', label: 'Dark', icon: '🌙' },
+    { value: 'SYSTEM', label: 'System', icon: '🖥️' }
   ];
 
   // ── Notifications ──
   notifPrefs!: NotificationPreferences;
   private notifDebounce: any;
   notifRows = [
-    { key: 'taskAssigned',      label: 'Task assigned to me',       desc: 'Show a toast when someone assigns a task to me',              color: '#3b82f6', icon: '📋' },
-    { key: 'commentOnTask',     label: 'Comment on my task',        desc: 'Notify when someone comments on a task I own',               color: '#10b981', icon: '💬' },
-    { key: 'subtaskCompleted',  label: 'Subtask completed',         desc: 'Notify when a subtask on my task is marked done',             color: '#8b5cf6', icon: '✅' },
-    { key: 'taskOverdue',       label: 'Task overdue',              desc: 'Show a banner when any of my tasks become overdue',           color: '#ef4444', icon: '⏰' },
-    { key: 'teamUpdates',       label: 'Team updates',              desc: 'Notify when I am added to or removed from a team',           color: '#f59e0b', icon: '👥' },
+    { key: 'taskAssigned', label: 'Task assigned to me', desc: 'Show a toast when someone assigns a task to me', color: '#3b82f6', icon: '📋' },
+    { key: 'commentOnTask', label: 'Comment on my task', desc: 'Notify when someone comments on a task I own', color: '#10b981', icon: '💬' },
+    { key: 'subtaskCompleted', label: 'Subtask completed', desc: 'Notify when a subtask on my task is marked done', color: '#8b5cf6', icon: '✅' },
+    { key: 'taskOverdue', label: 'Task overdue', desc: 'Show a banner when any of my tasks become overdue', color: '#ef4444', icon: '⏰' },
+    { key: 'teamUpdates', label: 'Team updates', desc: 'Notify when I am added to or removed from a team', color: '#f59e0b', icon: '👥' },
   ];
 
   // ── Team Settings ──
   managedTeams: any[] = [];
   teamsLoading = false;
   editingTeam: any = null;
+  showTeamCreateModal = false;
+  newTeamData = { name: '', description: '', memberIds: [] as number[] };
   showTeamEditModal = false;
   showTeamDeleteConfirm = false;
   deleteTeamId: number | null = null;
@@ -79,7 +81,7 @@ export class SettingsComponent implements OnInit {
     private notifService: NotificationService,
     private route: ActivatedRoute,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit() {
     // Initialize currentUser and profileForm here, after DI is ready
@@ -213,6 +215,23 @@ export class SettingsComponent implements OnInit {
     });
   }
 
+  openTeamCreate() {
+    this.newTeamData = { name: '', description: '', memberIds: [] };
+    this.showTeamCreateModal = true;
+  }
+
+  createTeam() {
+    if (!this.newTeamData.name) { this.toast.show('Name is required', 'warning'); return; }
+    this.teamService.createTeam(this.newTeamData).subscribe({
+      next: () => {
+        this.toast.show('Team created!', 'success');
+        this.showTeamCreateModal = false;
+        this.loadManagedTeams();
+      },
+      error: () => this.toast.show('Failed to create team', 'error')
+    });
+  }
+
   openTeamEdit(team: any) {
     this.editingTeam = { ...team };
     this.showTeamEditModal = true;
@@ -259,7 +278,7 @@ export class SettingsComponent implements OnInit {
   }
 
   getAvatarColor(name: string): string {
-    const colors = ['#6366f1','#10b981','#f59e0b','#3b82f6','#8b5cf6'];
+    const colors = ['#6366f1', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6'];
     let h = 0;
     for (const c of name || '') h = c.charCodeAt(0) + ((h << 5) - h);
     return colors[Math.abs(h) % colors.length];

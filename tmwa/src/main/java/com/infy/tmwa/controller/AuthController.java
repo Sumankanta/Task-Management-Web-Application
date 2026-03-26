@@ -60,7 +60,8 @@ public class AuthController {
                 .stream()
                 .map(user -> new UserDTO(
                         user.getId(),
-                        user.getFullName()
+                        user.getFullName(),
+                        user.getEmail()
                 ))
                 .toList();
     }

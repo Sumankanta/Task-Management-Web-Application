@@ -23,7 +23,7 @@ export const routes: Routes = [
   {
     path: 'teams',
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ADMIN', 'MANAGER'] },
+    data: { roles: ['ADMIN', 'MANAGER', 'MEMBER'] },
     loadComponent: () => import('./teams/teams').then(m => m.TeamsComponent)
   },
 

@@ -2,11 +2,43 @@
 
   <!-- ══ Page Top Bar ══ -->
   <div class="page-top-bar">
-    <h2 class="page-title">My Teams</h2>
-    <button *appHasRole="['ADMIN','MANAGER']" class="btn-teal" (click)="showCreateModal=true">
-      + Create Team
-    </button>
+    <div class="page-header-left">
+      <h2 class="page-title">My Teams</h2>
+    </div>
+    <div class="page-header-right">
+      <div class="stat-pill">{{ teams.length }} teams</div>
+      <button class="btn-sort" [class.active]="sortByPriority" (click)="toggleSort()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+        </svg>
+        Sort: Priority
+      </button>
+      <button class="btn-analytics" (click)="toggleAnalytics()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        {{ showAnalytics ? 'Hide Analytics' : 'Show Analytics' }}
+      </button>
+      <button *appHasRole="['ADMIN','MANAGER']" class="btn-teal" (click)="showCreateModal=true">
+        + Create Team
+      </button>
+    </div>
   </div>
+
+  <!-- Analytics -->
+  @if (showAnalytics) {
+    <div class="analytics-panel">
+      @if (!analyticsLoaded) {
+        <div class="loading-row"><div class="spinner spinner-sm"></div><span>Crunching team data...</span></div>
+      } @else if (summary) {
+        <div class="kpi-row">
+          <div class="kpi-card kpi-blue"><span class="kpi-label">Avg Members/Team</span><span class="kpi-value">{{ (summary.totalMembers / summary.totalTeams).toFixed(1) }}</span></div>
+          <div class="kpi-card kpi-purple"><span class="kpi-label">Managed Teams</span><span class="kpi-value">{{ summary.totalTeams }}</span></div>
+          <div class="kpi-card kpi-orange"><span class="kpi-label">Active Team Tasks</span><span class="kpi-value">{{ summary.activeTasks }}</span></div>
+        </div>
+      }
+    </div>
+  }
 
   <!-- ══ Stats Strip ══ -->
   <div class="stats-strip">
@@ -32,7 +64,7 @@
   <!-- ══ Team Cards Grid ══ -->
   @if (!loading) {
     <div class="teams-grid">
-      @for (team of teams; track team.id) {
+      @for (team of sortedTeams; track team.id) {
         <div class="team-card">
           <span class="team-card-name">{{ team.name }}</span>
           <div class="team-meta">
@@ -82,9 +114,28 @@
       <div class="team-detail-section mt-4">
         <div class="detail-header">
           <span class="detail-title">Team Detail — {{ selectedTeam.name }}</span>
-          <button *appHasRole="['ADMIN','MANAGER']" class="btn-teal">
-            + Add Member
-          </button>
+          <div class="header-actions">
+            @if (showAddMemberSearch) {
+              <div class="inline-search">
+                <input class="form-control" [(ngModel)]="memberSearch" (input)="searchMembers()" placeholder="Search user to add..." />
+                @if (filteredUsers.length > 0) {
+                  <div class="member-dropdown-list">
+                    @for (u of filteredUsers; track u.id) {
+                      <div class="member-dropdown-item" (click)="addMember(selectedTeam.id, u)">
+                        <div class="avatar-circle avatar-xs" [style.background]="getAvatarColor(u.fullName)">{{ getInitials(u.fullName) }}</div>
+                        <span>{{ u.fullName }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+                <button class="btn-cancel-search" (click)="showAddMemberSearch=false; memberSearch=''">✕</button>
+              </div>
+            } @else {
+              <button *appHasRole="['ADMIN','MANAGER']" class="btn-teal" (click)="showAddMemberSearch=true">
+                + Add Member
+              </button>
+            }
+          </div>
         </div>
 
         @if (detailLoading) {

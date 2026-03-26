@@ -16,8 +16,9 @@
   <!-- Desktop Nav Links -->
   <div class="nav-links" [class.open]="menuOpen">
     <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-    <a *appHasRole="['ADMIN','MANAGER']" class="nav-link" routerLink="/teams" routerLinkActive="active">Teams</a>
+    <a *appHasRole="['ADMIN','MANAGER','MEMBER']" class="nav-link" routerLink="/teams" routerLinkActive="active">Teams</a>
     <a *appHasRole="['ADMIN']" class="nav-link" routerLink="/admin" routerLinkActive="active">Admin</a>
+    <a class="nav-link" routerLink="/settings" routerLinkActive="active">Settings</a>
   </div>
 
   <!-- Right: Avatar Dropdown + hamburger -->
@@ -39,9 +40,13 @@
       }
     </button>
 
-    <!-- Avatar Dropdown -->
+    <!-- User Info + Avatar Dropdown -->
     <div class="avatar-dropdown-wrap" (click)="toggleDropdown($event)" (focusout)="closeDropdown()" tabindex="0">
-      <div class="avatar-circle nav-avatar" [style.background]="avatarColor">{{ initials }}</div>
+      <div class="nav-user-info">
+        <span class="role-badge" [class]="getRoleBadgeClass(currentUser?.role)">{{ currentUser?.role }}</span>
+        <div class="avatar-circle nav-avatar" [style.background]="avatarColor">{{ initials }}</div>
+        <span class="nav-user-name">{{ currentUser?.fullName }}</span>
+      </div>
       @if (dropdownOpen) {
         <div class="avatar-dropdown" (mousedown)="$event.preventDefault()">
           <div class="dropdown-user">
