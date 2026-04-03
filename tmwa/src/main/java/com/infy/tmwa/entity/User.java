@@ -43,14 +43,33 @@ public class User implements UserDetails {
     @Builder.Default
     private boolean isActive = true;
 
+    // ── Profile extras ──────────────────────────────────────────────
+    @Column(length = 300)
+    private String bio;
+
+    @Column(name = "avatar_color", length = 20)
+    @Builder.Default
+    private String avatarColor = "#6366f1";
+
+    // ── Preferences stored as JSON strings ──────────────────────────
+    @Column(name = "theme", length = 20)
+    @Builder.Default
+    private String theme = "SYSTEM";
+
+    // Stored as JSON: {"taskAssigned":true,"commentOnTask":true,...}
+    @Column(name = "notifications_json", length = 500)
+    private String notificationsJson;
+
+    // ────────────────────────────────────────────────────────────────
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-    @Override public String getUsername() { return email; }
-    @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public String getUsername()              { return email; }
+    @Override public boolean isAccountNonExpired()     { return true; }
+    @Override public boolean isAccountNonLocked()      { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return true; }
+    @Override public boolean isEnabled()               { return isActive; }
 }

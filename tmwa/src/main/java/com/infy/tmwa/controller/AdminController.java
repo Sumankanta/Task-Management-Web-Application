@@ -1,5 +1,6 @@
 package com.infy.tmwa.controller;
 
+import com.infy.tmwa.dto.UserDTO;
 import com.infy.tmwa.entity.User;
 import com.infy.tmwa.entity.UserRole;
 import com.infy.tmwa.repository.UserRepository;
@@ -12,9 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-// ── F-W2-01: Admin Panel endpoints ──
-// All methods here are Admin-only — also enforced at route level in SecurityConfig
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
@@ -25,21 +25,23 @@ public class AdminController {
     private final UserRepository userRepository;
 
     // ── GET /api/admin/users ──
-    // Returns all users with role, isActive, email, fullName
     @GetMapping("/users")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<User>> getAllUsers(
+    public ResponseEntity<List<UserDTO>> getAllUsers(
             @AuthenticationPrincipal User admin) {
 
         log.info("Admin {} fetching all users", admin.getEmail());
-        return ResponseEntity.ok(userRepository.findAll());
+        List<UserDTO> users = userRepository.findAll()
+                .stream()
+                .map(UserDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(users);
     }
 
     // ── PATCH /api/admin/users/{id}/role ──
-    // Changes a user's role. Takes effect on user's next login (new JWT issued).
     @PatchMapping("/users/{id}/role")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> changeRole(
+    public ResponseEntity<UserDTO> changeRole(
             @PathVariable Long id,
             @RequestBody Map<String, String> body,
             @AuthenticationPrincipal User admin) {
@@ -53,21 +55,16 @@ public class AdminController {
         try {
             user.setRole(UserRole.valueOf(roleStr.toUpperCase()));
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid role: " + roleStr
-                    + ". Must be one of: ADMIN, MANAGER, MEMBER, VIEWER");
+            throw new RuntimeException("Invalid role: " + roleStr);
         }
 
-        User updated = userRepository.save(user);
-        log.info("Role updated: user={}, newRole={}", user.getEmail(), updated.getRole());
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(new UserDTO(userRepository.save(user)));
     }
 
     // ── PATCH /api/admin/users/{id}/status ──
-    // Activates or deactivates a user account.
-    // Deactivated users: isActive=false, blocked in JwtAuthFilter via isEnabled()
     @PatchMapping("/users/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> changeStatus(
+    public ResponseEntity<UserDTO> changeStatus(
             @PathVariable Long id,
             @RequestBody Map<String, Boolean> body,
             @AuthenticationPrincipal User admin) {
@@ -78,19 +75,15 @@ public class AdminController {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found: " + id));
 
-        // Prevent admin from deactivating themselves
         if (user.getId().equals(admin.getId()) && !isActive) {
             throw new RuntimeException("Cannot deactivate your own account");
         }
 
         user.setActive(isActive);
-        User updated = userRepository.save(user);
-        log.info("Status updated: user={}, isActive={}", user.getEmail(), updated.isActive());
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(new UserDTO(userRepository.save(user)));
     }
 
     // ── DELETE /api/admin/users/{id} ──
-    // Permanently deletes a user account
     @DeleteMapping("/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(
@@ -104,7 +97,6 @@ public class AdminController {
         }
 
         userRepository.deleteById(id);
-        log.info("User {} deleted by admin {}", id, admin.getEmail());
         return ResponseEntity.noContent().build();
     }
 }

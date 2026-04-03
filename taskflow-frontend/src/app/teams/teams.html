@@ -4,37 +4,53 @@
   <div class="page-top-bar">
     <div class="page-header-left">
       <h2 class="page-title">My Teams</h2>
+      <p class="page-subtitle">Manage and collaborate with your teams</p>
     </div>
     <div class="page-header-right">
       <div class="stat-pill">{{ teams.length }} teams</div>
+
       <button class="btn-sort" [class.active]="sortByPriority" (click)="toggleSort()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="21" y2="12"/><line x1="9" y1="18" x2="21" y2="18"/>
         </svg>
         Sort: Priority
       </button>
-      <button class="btn-analytics" (click)="toggleAnalytics()">
+
+      <button class="btn-analytics" [class.active]="showAnalytics" (click)="toggleAnalytics()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
         </svg>
         {{ showAnalytics ? 'Hide Analytics' : 'Show Analytics' }}
       </button>
-      <button *appHasRole="['ADMIN','MANAGER']" class="btn-teal" (click)="showCreateModal=true">
-        + Create Team
+
+      <button *appHasRole="['ADMIN','MANAGER']" class="btn-teal" (click)="showCreateModal = true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Create Team
       </button>
     </div>
   </div>
 
-  <!-- Analytics -->
+  <!-- ══ Analytics Panel ══ -->
   @if (showAnalytics) {
     <div class="analytics-panel">
       @if (!analyticsLoaded) {
-        <div class="loading-row"><div class="spinner spinner-sm"></div><span>Crunching team data...</span></div>
+        <div class="loading-row"><div class="spinner spinner-sm"></div><span>Crunching team data…</span></div>
       } @else if (summary) {
         <div class="kpi-row">
-          <div class="kpi-card kpi-blue"><span class="kpi-label">Avg Members/Team</span><span class="kpi-value">{{ (summary.totalMembers / summary.totalTeams).toFixed(1) }}</span></div>
-          <div class="kpi-card kpi-purple"><span class="kpi-label">Managed Teams</span><span class="kpi-value">{{ summary.totalTeams }}</span></div>
-          <div class="kpi-card kpi-orange"><span class="kpi-label">Active Team Tasks</span><span class="kpi-value">{{ summary.activeTasks }}</span></div>
+          <div class="kpi-card kpi-blue">
+            <span class="kpi-label">Avg Members / Team</span>
+            <span class="kpi-value">{{ (summary.totalMembers / summary.totalTeams).toFixed(1) }}</span>
+          </div>
+          <div class="kpi-card kpi-green">
+            <span class="kpi-label">Managed Teams</span>
+            <span class="kpi-value">{{ summary.totalTeams }}</span>
+          </div>
+          <div class="kpi-card kpi-orange">
+            <span class="kpi-label">Active Team Tasks</span>
+            <span class="kpi-value">{{ summary.activeTasks }}</span>
+          </div>
         </div>
       }
     </div>
@@ -56,44 +72,50 @@
     </div>
   </div>
 
-  <!-- ══ Loading ══ -->
   @if (loading) {
     <div class="loading-center"><div class="spinner"></div></div>
   }
 
-  <!-- ══ Team Cards Grid ══ -->
   @if (!loading) {
     <div class="teams-grid">
       @for (team of sortedTeams; track team.id) {
-        <div class="team-card">
-          <span class="team-card-name">{{ team.name }}</span>
-          <div class="team-meta">
-            {{ (team.members?.length || 0) }} members<br>
-            Manager: {{ team.managerName || 'No manager' }}
+        <div class="team-card" [class.selected]="selectedTeam?.id === team.id">
+
+          <div class="team-card-top">
+            <div>
+              <span class="team-card-name">{{ team.name }}</span>
+              <div class="team-meta">Manager: {{ team.managerName || 'No manager' }}</div>
+            </div>
+            <span class="active-task-pill"
+                  [class.has-tasks]="team.activeTaskCount"
+                  [class.no-tasks]="!team.activeTaskCount">
+              {{ team.activeTaskCount || 0 }} tasks
+            </span>
           </div>
 
-          <!-- Overlapping Avatars -->
+          <!-- Overlapping Avatars — use getMembersList() + getMemberId() / getMemberName() -->
           <div class="member-chips">
-            @for (m of (team.members || []).slice(0,4); track m.id) {
-              <div class="avatar-circle"
-                   [style.background]="getAvatarColor(m.fullName)"
-                   [title]="m.fullName">{{ getInitials(m.fullName) }}</div>
-            }
-            @if ((team.members || []).length > 4) {
-              <div class="avatar-circle avatar-more">+{{ (team.members || []).length - 4 }}</div>
-            }
+            <div class="avatar-stack">
+              @for (m of getMembersList(team).slice(0, 4); track getMemberId(m)) {
+                <div class="avatar-circle"
+                     [style.background]="getAvatarColor(getMemberName(m))"
+                     [title]="getMemberName(m)">
+                  {{ getInitials(getMemberName(m)) }}
+                </div>
+              }
+              @if (getMembersList(team).length > 4) {
+                <div class="avatar-circle avatar-more">+{{ getMembersList(team).length - 4 }}</div>
+              }
+            </div>
+            <span class="member-count-label">
+              {{ getMembersList(team).length }} member{{ getMembersList(team).length !== 1 ? 's' : '' }}
+            </span>
           </div>
 
-          <!-- Active task pill -->
-          @if (team.activeTaskCount) {
-            <span class="active-task-pill">{{ team.activeTaskCount }} tasks active</span>
-          } @else {
-            <span class="active-task-pill" style="opacity: 0.5;">0 tasks active</span>
-          }
-
-          <!-- Actions -->
           <div class="team-actions">
-            <button class="btn-card btn-view" (click)="viewTeam(team)">
+            <button class="btn-card btn-view"
+                    [class.active-view]="selectedTeam?.id === team.id"
+                    (click)="viewTeam(team)">
               {{ selectedTeam?.id === team.id ? 'Collapse' : 'View Team' }}
             </button>
             <button *appHasRole="['ADMIN','MANAGER']" class="btn-card btn-edit" (click)="openEdit(team)">Edit</button>
@@ -104,34 +126,50 @@
     </div>
 
     @if (teams.length === 0) {
-      <div style="text-align: center; color: #64748b; padding: 40px;">
+      <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
         <p>No teams yet. Create one to get started!</p>
       </div>
     }
 
-    <!-- ── Team Detail Panel (Expands below the grid) ── -->
+    <!-- ── Team Detail Panel ── -->
     @if (selectedTeam) {
-      <div class="team-detail-section mt-4">
+      <div class="team-detail-section">
         <div class="detail-header">
           <span class="detail-title">Team Detail — {{ selectedTeam.name }}</span>
           <div class="header-actions">
             @if (showAddMemberSearch) {
               <div class="inline-search">
-                <input class="form-control" [(ngModel)]="memberSearch" (input)="searchMembers()" placeholder="Search user to add..." />
+                <input class="form-control"
+                       [(ngModel)]="memberSearch"
+                       (input)="searchMembers()"
+                       placeholder="Search user to add…" />
                 @if (filteredUsers.length > 0) {
                   <div class="member-dropdown-list">
                     @for (u of filteredUsers; track u.id) {
                       <div class="member-dropdown-item" (click)="addMember(selectedTeam.id, u)">
-                        <div class="avatar-circle avatar-xs" [style.background]="getAvatarColor(u.fullName)">{{ getInitials(u.fullName) }}</div>
+                        <div class="avatar-circle avatar-xs"
+                             [style.background]="getAvatarColor(u.fullName)">
+                          {{ getInitials(u.fullName) }}
+                        </div>
                         <span>{{ u.fullName }}</span>
                       </div>
                     }
                   </div>
                 }
-                <button class="btn-cancel-search" (click)="showAddMemberSearch=false; memberSearch=''">✕</button>
+                <button class="btn-cancel-search"
+                        (click)="showAddMemberSearch = false; memberSearch = ''">✕</button>
               </div>
             } @else {
-              <button *appHasRole="['ADMIN','MANAGER']" class="btn-teal" (click)="showAddMemberSearch=true">
+              <button *appHasRole="['ADMIN','MANAGER']"
+                      class="btn-teal"
+                      style="font-size:12px;padding:7px 14px"
+                      (click)="showAddMemberSearch = true">
                 + Add Member
               </button>
             }
@@ -141,66 +179,102 @@
         @if (detailLoading) {
           <div class="loading-center"><div class="spinner"></div></div>
         }
+
         @if (!detailLoading && teamDetail) {
-          <table class="detail-table">
-            <thead>
-              <tr><th>Member</th><th>Role</th><th>Email</th><th>Tasks Assigned</th><th>Joined</th><th></th></tr>
-            </thead>
-            <tbody>
-              @for (member of teamDetail.members; track member.id) {
+          <div style="overflow-x:auto">
+            <table class="detail-table">
+              <thead>
                 <tr>
-                  <td>{{ member.fullName }}</td>
-                  <td>
-                    <span class="role-badge" [class]="getMemberRoleClass(member.role)">{{ member.role }}</span>
-                  </td>
-                  <td class="text-muted-sm">{{ member.email }}</td>
-                  <td class="text-muted-sm">{{ member.tasksAssigned ?? 0 }} tasks</td>
-                  <td class="text-muted-sm">{{ member.joinedAt | date:'MMM dd' }}</td>
-                  <td style="text-align: right;">
-                    <button *appHasRole="['ADMIN','MANAGER']" class="btn-remove"
-                            (click)="removeMember(selectedTeam.id, member.id)">Remove</button>
-                  </td>
+                  <th>Member</th>
+                  <th>Role</th>
+                  <th>Email</th>
+                  <th>Tasks Assigned</th>
+                  <th>Joined</th>
+                  <th></th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <!-- Use getDetailMembers() + getMemberId() for tracking -->
+                @for (member of getDetailMembers(); track getMemberId(member)) {
+                  <tr>
+                    <td>
+                      <div class="member-name-cell">
+                        <div class="member-avatar-sm"
+                             [style.background]="getAvatarColor(getMemberName(member))">
+                          {{ getInitials(getMemberName(member)) }}
+                        </div>
+                        <span style="font-weight:500">{{ getMemberName(member) }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="role-badge" [class]="getMemberRoleClass(getMemberRole(member))">
+                        {{ getMemberRole(member) }}
+                      </span>
+                    </td>
+                    <td class="text-muted-sm">{{ getMemberEmail(member) }}</td>
+                    <td class="text-muted-sm"
+                        style="font-family:'JetBrains Mono',monospace;font-size:12px">
+                      {{ member.tasksAssigned ?? 0 }}
+                    </td>
+                    <td class="text-muted-sm">{{ member.joinedAt | date:'MMM dd' }}</td>
+                    <td style="text-align:right">
+                      <button *appHasRole="['ADMIN','MANAGER']"
+                              class="btn-remove"
+                              (click)="removeMember(selectedTeam.id, getMemberUserId(member))">
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         }
       </div>
     }
   }
+
 </div>
 
 <!-- ══ Create Team Modal ══ -->
 @if (showCreateModal) {
-  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && (showCreateModal=false)">
+  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && (showCreateModal = false)">
     <div class="modal-box">
       <div class="modal-header-bar">
-        <span>Create Team</span>
-        <button class="modal-close-btn" (click)="showCreateModal=false">✕</button>
+        <span>Create New Team</span>
+        <button class="modal-close-btn" (click)="showCreateModal = false">✕</button>
       </div>
       <div class="modal-body-pad">
         <div class="mb-3">
-          <label class="form-label">Team Name <span class="text-danger">*</span></label>
+          <label class="form-label">Team Name <span style="color:#f85149">*</span></label>
           <input class="form-control" [(ngModel)]="newTeam.name" placeholder="e.g. Frontend Team" />
         </div>
         <div class="mb-3">
           <label class="form-label">Description</label>
-          <textarea class="form-control" [(ngModel)]="newTeam.description" rows="2" placeholder="Optional description"></textarea>
+          <textarea class="form-control" [(ngModel)]="newTeam.description" rows="2"
+                    placeholder="Optional description…"></textarea>
         </div>
         <div class="mb-3">
           <label class="form-label">Add Members</label>
-          <input class="form-control" [(ngModel)]="memberSearch" (input)="searchMembers()" placeholder="Search by name or email..." />
-          @if (filteredUsers.length > 0) {
-            <div class="member-dropdown">
-              @for (u of filteredUsers; track u.id) {
-                <div class="member-dropdown-item" (click)="addMemberToList(u)">
-                  <div class="avatar-circle avatar-sm" [style.background]="getAvatarColor(u.fullName)">{{ getInitials(u.fullName) }}</div>
-                  <span>{{ u.fullName }}</span>
-                  <span class="text-muted" style="font-size:12px">{{ u.email }}</span>
-                </div>
-              }
-            </div>
-          }
+          <div style="position:relative">
+            <input class="form-control"
+                   [(ngModel)]="memberSearch"
+                   (input)="searchMembers()"
+                   placeholder="Search by name or email…" />
+            @if (filteredUsers.length > 0) {
+              <div class="member-dropdown">
+                @for (u of filteredUsers; track u.id) {
+                  <div class="member-dropdown-item" (click)="addMemberToList(u)">
+                    <div class="avatar-circle avatar-sm" [style.background]="getAvatarColor(u.fullName)">
+                      {{ getInitials(u.fullName) }}
+                    </div>
+                    <span>{{ u.fullName }}</span>
+                    <span class="text-muted-sm">{{ u.email }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
           <div class="selected-members mt-2">
             @for (m of selectedMembers; track m.id) {
               <span class="member-chip">
@@ -212,9 +286,9 @@
         </div>
       </div>
       <div class="modal-footer-bar">
-        <button class="btn btn-ghost" (click)="showCreateModal=false">Cancel</button>
-        <button class="btn btn-primary" (click)="createTeam()" [disabled]="createLoading">
-          {{ createLoading ? 'Creating...' : 'Create Team' }}
+        <button class="btn-ghost" (click)="showCreateModal = false">Cancel</button>
+        <button class="btn-primary" (click)="createTeam()" [disabled]="createLoading">
+          {{ createLoading ? 'Creating…' : 'Create Team' }}
         </button>
       </div>
     </div>
@@ -223,11 +297,11 @@
 
 <!-- ══ Edit Team Modal ══ -->
 @if (showEditModal) {
-  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && (showEditModal=false)">
+  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && (showEditModal = false)">
     <div class="modal-box">
       <div class="modal-header-bar">
         <span>Edit Team</span>
-        <button class="modal-close-btn" (click)="showEditModal=false">✕</button>
+        <button class="modal-close-btn" (click)="showEditModal = false">✕</button>
       </div>
       <div class="modal-body-pad">
         <div class="mb-3">
@@ -240,8 +314,8 @@
         </div>
       </div>
       <div class="modal-footer-bar">
-        <button class="btn btn-ghost" (click)="showEditModal=false">Cancel</button>
-        <button class="btn btn-primary" (click)="saveEdit()">Save Changes</button>
+        <button class="btn-ghost" (click)="showEditModal = false">Cancel</button>
+        <button class="btn-primary" (click)="saveEdit()">Save Changes</button>
       </div>
     </div>
   </div>
@@ -251,12 +325,19 @@
 @if (showDeleteConfirm) {
   <div class="modal-overlay">
     <div class="confirm-dialog">
-      <div class="confirm-icon">🗑️</div>
+      <div class="confirm-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="1.5">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6"/><path d="M14 11v6"/>
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+        </svg>
+      </div>
       <div class="confirm-title">Delete Team?</div>
-      <div class="confirm-body">This action cannot be undone. All team data will be removed.</div>
+      <div class="confirm-body">This action cannot be undone. All team data will be permanently removed.</div>
       <div class="confirm-actions">
-        <button class="btn btn-ghost" (click)="showDeleteConfirm=false; deleteTargetId=null">Cancel</button>
-        <button class="btn btn-danger" (click)="doDelete()">Delete</button>
+        <button class="btn-ghost" (click)="showDeleteConfirm = false; deleteTargetId = null">Cancel</button>
+        <button class="btn-danger" (click)="doDelete()">Delete</button>
       </div>
     </div>
   </div>

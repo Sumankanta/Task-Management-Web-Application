@@ -2,13 +2,36 @@
 
   <!-- ══ Sidebar ══ -->
   <aside class="settings-sidebar">
-    <div class="sidebar-brand">⚙️ Settings</div>
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+        </svg>
+        Settings
+      </div>
+      <div class="sidebar-brand-sub">Manage your account</div>
+    </div>
     <nav class="sidebar-nav">
-      <button class="sidebar-link" [class.active]="activeTab==='profile'" (click)="setTab('profile')">Profile</button>
-      <button class="sidebar-link" [class.active]="activeTab==='security'" (click)="setTab('security')">Security</button>
-      <button class="sidebar-link" [class.active]="activeTab==='theme'" (click)="setTab('theme')">Theme</button>
-      <button class="sidebar-link" [class.active]="activeTab==='notifications'" (click)="setTab('notifications')">Notifications</button>
-      <button *appHasRole="['ADMIN','MANAGER']" class="sidebar-link" [class.active]="activeTab==='team'" (click)="setTab('team')">Team Settings</button>
+      <button class="sidebar-link" [class.active]="activeTab === 'profile'" (click)="setTab('profile')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Profile
+      </button>
+      <button class="sidebar-link" [class.active]="activeTab === 'security'" (click)="setTab('security')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Security
+      </button>
+      <button class="sidebar-link" [class.active]="activeTab === 'theme'" (click)="setTab('theme')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+        Theme
+      </button>
+      <button class="sidebar-link" [class.active]="activeTab === 'notifications'" (click)="setTab('notifications')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Notifications
+      </button>
+      <button *appHasRole="['ADMIN','MANAGER']" class="sidebar-link" [class.active]="activeTab === 'team'" (click)="setTab('team')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Team Settings
+      </button>
     </nav>
   </aside>
 
@@ -19,50 +42,62 @@
     @if (activeTab === 'profile') {
       <div class="tab-panel">
         <h2 class="tab-title">Profile</h2>
+        <p class="tab-subtitle">Manage your personal information and preferences</p>
 
-        <!-- Avatar preview + color picker -->
-        <div class="avatar-section">
-          <div class="avatar-circle avatar-lg" [style.background]="profileForm.avatarColor">{{ initials }}</div>
-          <div class="color-picker">
-            <p class="picker-label">Avatar Color</p>
-            <div class="swatches">
-              @for (col of avatarColors; track col) {
-                <button class="swatch" [style.background]="col"
-                        [class.active]="profileForm.avatarColor === col"
-                        (click)="profileForm.avatarColor = col"></button>
-              }
+        <div class="section-card accent-blue">
+          <div class="sec-label">Avatar &amp; identity</div>
+
+          <div class="avatar-section">
+            <div class="avatar-circle avatar-lg" [style.background]="profileForm.avatarColor">
+              {{ initials }}
+            </div>
+            <div class="color-picker">
+              <p class="picker-label">Avatar Color</p>
+              <div class="swatches">
+                @for (col of avatarColors; track col) {
+                  <button class="swatch"
+                          [style.background]="col"
+                          [class.active]="profileForm.avatarColor === col"
+                          (click)="profileForm.avatarColor = col">
+                  </button>
+                }
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Name + Email -->
-        <div class="form-row">
-          <div class="form-group">
-            <label>Full Name</label>
-            <input class="form-control" [(ngModel)]="profileForm.fullName" />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="upper-label">Full Name</label>
+              <input class="form-control" [(ngModel)]="profileForm.fullName" placeholder="Your full name" />
+            </div>
+            <div class="form-group">
+              <label class="upper-label">Email Address</label>
+              <input class="form-control" [(ngModel)]="profileForm.email" type="email" placeholder="you@example.com" />
+            </div>
           </div>
-          <div class="form-group">
-            <label>Email Address</label>
-            <input class="form-control" [(ngModel)]="profileForm.email" type="email" />
+
+          <div class="form-group bio-group">
+            <label class="upper-label">Bio <span class="opt">(optional)</span></label>
+            <textarea class="form-control"
+                      [(ngModel)]="profileForm.bio"
+                      rows="3"
+                      [maxlength]="bioMax"
+                      placeholder="Tell us about yourself..."></textarea>
+            <span class="bio-counter" [class.over]="bioLength >= bioMax">{{ bioLength }}/{{ bioMax }}</span>
           </div>
+
+          <button class="btn btn-primary" (click)="saveProfile()" [disabled]="saveProfileLoading">
+            {{ saveProfileLoading ? 'Saving…' : 'Save Profile' }}
+          </button>
         </div>
 
-        <!-- Bio -->
-        <div class="form-group bio-group">
-          <label>Bio <span class="opt">optional</span></label>
-          <textarea class="form-control" [(ngModel)]="profileForm.bio" rows="3" [maxlength]="bioMax" placeholder="Tell us about yourself..."></textarea>
-          <span class="bio-counter" [class.over]="bioLength >= bioMax">{{ bioLength }}/{{ bioMax }}</span>
-        </div>
-
-        <button class="btn btn-primary" (click)="saveProfile()" [disabled]="saveProfileLoading">
-          {{ saveProfileLoading ? 'Saving...' : 'Save Profile' }}
-        </button>
-
-        <!-- Danger Zone -->
         <div class="danger-zone">
-          <h3 class="danger-title">⚠️ Danger Zone</h3>
-          <p class="danger-desc">Permanently delete your account and all associated data.</p>
-          <button class="btn btn-danger" (click)="showDeleteAccountModal=true">Delete My Account</button>
+          <div class="danger-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Danger Zone
+          </div>
+          <p class="danger-desc">Permanently delete your account and all associated data. This action cannot be undone.</p>
+          <button class="btn btn-danger" (click)="showDeleteAccountModal = true">Delete My Account</button>
         </div>
       </div>
     }
@@ -70,84 +105,84 @@
     <!-- ═══ Security ═══ -->
     @if (activeTab === 'security') {
       <div class="tab-panel">
-        <h2 class="page-title-center">Settings</h2>
+        <h2 class="tab-title">Security</h2>
+        <p class="tab-subtitle">Manage your password and active sessions</p>
 
-        <div class="settings-card-wrapper">
-          <div class="sec-header-wrap">
-            <h3 class="sec-main-title">Security Settings</h3>
-          </div>
-          
-          <div class="card-section">
-            <h4 class="section-sub-title">Change Password</h4>
-            <div class="form-row three-col align-end">
-              <div class="form-group mb-0">
-                <label class="upper-label">CURRENT PASSWORD</label>
-                <input class="form-control" type="password" [(ngModel)]="passwordForm.currentPassword" placeholder="(hidden)" />
-              </div>
-              <div class="form-group mb-0" style="position:relative">
-                <label class="upper-label">NEW PASSWORD</label>
-                <input class="form-control" type="password" [(ngModel)]="passwordForm.newPassword" (ngModelChange)="onNewPasswordChange()" placeholder="min 8 characters" />
-                <div class="strength-wrap mt-2">
-                  <span class="strength-text-sm">Password strength:</span>
-                  <div class="strength-bar-group">
-                    <div class="strength-bar-seg" [class.bg-green]="passwordStrength >= 1"></div>
-                    <div class="strength-bar-seg" [class.bg-green]="passwordStrength >= 2"></div>
-                    <div class="strength-bar-seg" [class.bg-green]="passwordStrength >= 3" [class.bg-grey]="passwordStrength < 3"></div>
-                  </div>
-                  <span class="strength-val-text" [class.text-or]="passwordStrength === 2" [class.text-danger]="passwordStrength < 2" style="color: #10b981" [style.color]="passwordStrength < 3 ? '#d97706' : '#10b981'">{{ ['', 'Weak', 'Medium', 'Strong'][passwordStrength] }}</span>
+        <div class="section-card accent-purple">
+          <div class="sec-label">Change password</div>
+          <div class="form-row three-col align-end">
+            <div class="form-group mb-0">
+              <label class="upper-label">Current Password</label>
+              <input class="form-control" type="password" [(ngModel)]="passwordForm.currentPassword" placeholder="••••••••" />
+            </div>
+            <div class="form-group mb-0">
+              <label class="upper-label">New Password</label>
+              <input class="form-control" type="password" [(ngModel)]="passwordForm.newPassword" (ngModelChange)="onNewPasswordChange()" placeholder="min 8 characters" />
+              <div class="strength-wrap mt-2">
+                <span class="strength-text-sm">Strength:</span>
+                <div class="strength-bar-group">
+                  <div class="strength-bar-seg"
+                       [class.bg-red]="passwordStrength === 1"
+                       [class.bg-amber]="passwordStrength === 2"
+                       [class.bg-green]="passwordStrength === 3"></div>
+                  <div class="strength-bar-seg"
+                       [class.bg-amber]="passwordStrength === 2"
+                       [class.bg-green]="passwordStrength === 3"></div>
+                  <div class="strength-bar-seg"
+                       [class.bg-green]="passwordStrength === 3"></div>
                 </div>
-              </div>
-              <div class="form-group mb-0">
-                <label class="upper-label">CONFIRM NEW</label>
-                <input class="form-control" type="password" [(ngModel)]="passwordForm.confirmPassword" placeholder="repeat new password" />
+                <span class="strength-val-text"
+                      [class.text-danger]="passwordStrength === 1"
+                      [class.text-or]="passwordStrength === 2"
+                      [class.text-success]="passwordStrength === 3">
+                  {{ ['', 'Weak', 'Medium', 'Strong'][passwordStrength] }}
+                </span>
               </div>
             </div>
-            
-            @if (passwordError) {
-              <div class="text-danger mt-2" style="font-size: 13px;">{{ passwordError }}</div>
+            <div class="form-group mb-0">
+              <label class="upper-label">Confirm New</label>
+              <input class="form-control" type="password" [(ngModel)]="passwordForm.confirmPassword" placeholder="Repeat new password" />
+            </div>
+          </div>
+          @if (passwordError) {
+            <div class="text-danger mt-2" style="font-size:13px">{{ passwordError }}</div>
+          }
+          <button class="btn btn-primary mt-3 btn-lg" (click)="changePassword()">Update Password</button>
+        </div>
+
+        <div class="section-card accent-green">
+          <div class="sec-label">Active sessions</div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <p class="text-muted-sm m-0">Your account is signed in on these sessions.</p>
+            <button class="btn btn-danger" style="padding:7px 14px;font-size:12px" (click)="revokeAll()">Revoke All Others</button>
+          </div>
+          <div class="sessions-list">
+            @for (session of sessions; track session.jti) {
+              <div class="session-box">
+                <div class="session-left">
+                  <div class="session-icon" [class.active-icon]="session.current">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                         [attr.stroke]="session.current ? '#3fb950' : '#484f58'" stroke-width="2">
+                      <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="session-name">{{ session.current ? 'Current Session (This Device)' : (session.deviceInfo || session.device || 'Unknown') }}</div>
+                    <div class="session-sub">{{ session.device || session.deviceInfo || 'Unknown' }} · {{ session.location || 'Unknown' }} · {{ session.current ? 'Active now' : (session.lastActive | date:'short') }}</div>
+                    <div class="session-jti">jti: {{ session.jti?.slice(0, 8) }}…</div>
+                  </div>
+                </div>
+                <div>
+                  @if (session.current) {
+                    <span class="badge-hollow-green">Active</span>
+                  } @else {
+                    <button class="btn btn-danger" style="padding:5px 12px;font-size:11px" (click)="revokeSession(session.jti)">Revoke</button>
+                  }
+                </div>
+              </div>
             }
-            <button class="btn btn-primary mt-3 btn-lg" (click)="changePassword()">Update Password</button>
           </div>
-
-          <!-- Active Sessions -->
-          <div class="card-section mt-5">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <div>
-                <h4 class="section-sub-title mb-1">Active Sessions</h4>
-                <p class="text-muted-sm m-0">Your account is currently signed in on these sessions.</p>
-              </div>
-              <button class="btn btn-danger" (click)="revokeAll()">Revoke All Others</button>
-            </div>
-            
-            <div class="sessions-list">
-              @for (session of sessions; track session.jti) {
-                <div class="session-box">
-                  <div class="session-left">
-                    <div class="session-icon" [class.active-icon]="session.current">
-                       @if (session.current) { <span>✓</span> } @else { <span>📱</span> }
-                    </div>
-                    <div>
-                      <div class="session-name">
-                        {{ session.current ? 'Current Session (This Device)' : 'Session ' + ($index + 1) }}
-                      </div>
-                      <div class="session-sub">
-                        {{ session.deviceInfo || session.device || 'Unknown' }} · {{ session.location || 'Unknown' }} · Last active: {{ session.current ? 'Now' : (session.lastActive | date:'short') }}
-                      </div>
-                      <div class="session-jti">jti: {{ session.jti?.slice(0,8) }}...</div>
-                    </div>
-                  </div>
-                  <div class="session-right">
-                    @if (session.current) {
-                      <span class="badge-hollow-green">Active</span>
-                    } @else {
-                      <button class="btn btn-danger" (click)="revokeSession(session.jti)">Revoke</button>
-                    }
-                  </div>
-                </div>
-              }
-            </div>
-            <p class="text-muted-sm mt-3">Revoking a session adds its JWT ID to the token blocklist table. The next request from that session returns 401.</p>
-          </div>
+          <p class="text-muted-sm mt-3">Revoking a session adds its JWT ID to the token blocklist. The next request returns 401.</p>
         </div>
       </div>
     }
@@ -156,10 +191,10 @@
     @if (activeTab === 'theme') {
       <div class="tab-panel">
         <h2 class="tab-title">Theme</h2>
+        <p class="tab-subtitle">Choose how TaskFlow looks for you</p>
         <div class="theme-cards">
           @for (t of themes; track t.value) {
             <div class="theme-card" [class.active]="themeService.currentTheme() === t.value" (click)="setTheme(t.value)">
-              <!-- Mini UI preview -->
               <div class="theme-preview" [attr.data-theme-preview]="t.value">
                 <div class="preview-nav"></div>
                 <div class="preview-body">
@@ -183,106 +218,125 @@
     <!-- ═══ Notifications ═══ -->
     @if (activeTab === 'notifications') {
       <div class="tab-panel">
-        <h2 class="page-title-center">Settings</h2>
-        
-        <div class="settings-card-wrapper">
-          <h3 class="notif-title-under">Notification Preferences</h3>
-          <p class="notif-desc-top">Control which in-app notifications TaskFlow shows you.<br>Changes saved automatically.</p>
-          
+        <h2 class="tab-title">Notifications</h2>
+        <p class="tab-subtitle">Control which notifications TaskFlow shows you. Changes are saved automatically.</p>
+
+        <div class="section-card no-pad">
           <div class="notif-blocks-wrapper">
             @for (row of notifRows; track row.key) {
-              <div class="notif-row" [style.--on-color]="row.color">
+              <div class="notif-row">
                 <div class="notif-accent-left" [style.background]="row.color"></div>
-                <div class="notif-icon-box" [style.color]="row.color">{{ row.icon }}</div>
-                
+                <div class="notif-icon-box"
+                     [style.background]="row.iconBg"
+                     [style.border]="'1px solid ' + row.color + '40'">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                       [attr.stroke]="row.color" stroke-width="2">
+                    <circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/>
+                  </svg>
+                </div>
                 <div class="notif-text-wrap">
                   <div class="notif-title">{{ row.label }}</div>
                   <div class="notif-sub">{{ row.desc }}</div>
-                  <div class="notif-email-sms">In-app toast notification only — no email or SMS.</div>
+                  <div class="notif-email-sms">In-app toast only — no email or SMS.</div>
                 </div>
-                
                 <div class="notif-toggle-wrap">
                   <label class="toggle">
                     <input type="checkbox" [checked]="$any(notifPrefs)[row.key]" (change)="onNotifToggle(row.key)" />
                     <span class="toggle-slider"></span>
                   </label>
-                  <span class="toggle-text">{{ $any(notifPrefs)[row.key] ? 'ON' : 'OFF' }}</span>
+                  <span class="toggle-text" [style.color]="$any(notifPrefs)[row.key] ? '#3fb950' : '#484f58'">
+                    {{ $any(notifPrefs)[row.key] ? 'ON' : 'OFF' }}
+                  </span>
                 </div>
               </div>
             }
           </div>
-          
-          <p class="text-muted-sm mt-3">Preferences are saved to the user_preferences table via PATCH /api/users/me/preferences.<br>The Angular NotificationService reads these flags before showing each toast.</p>
         </div>
+        <p class="text-muted-sm mt-2">Saved via PATCH /api/users/me/preferences. The NotificationService reads these flags before showing each toast.</p>
       </div>
     }
 
     <!-- ═══ Team Settings ═══ -->
     @if (activeTab === 'team') {
       <div class="tab-panel">
-        <h2 class="page-title-center">Settings</h2>
-        
-        <div class="settings-card-wrapper">
-          <div class="role-guard-banner">
-            Visible to Admin and Manager roles only (RoleGuard applied).
-          </div>
-          
-          <div class="team-sec-header">
-            <h3 class="team-sec-title">Team Settings — My Teams</h3>
-            <button class="btn btn-primary" style="background:#0f766e" (click)="openTeamCreate()">
-              + Create Team
-            </button>
-          </div>
+        <h2 class="tab-title">Team Settings</h2>
+        <p class="tab-subtitle">Manage teams you own or administer</p>
 
-          @if (teamsLoading) {
-            <div class="loading-center"><div class="spinner"></div></div>
-          }
+        <div class="rbac-guard-banner">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Visible to Admin and Manager roles only (RoleGuard applied)
+        </div>
 
-          @for (team of managedTeams; track team.id) {
-            <div class="team-block-card">
-              <div class="team-block-header">
-                <div class="tb-name-wrap">
-                  <span class="tb-name">{{ team.name }}</span>
-                  <span class="tb-meta">({{ (team.members||[]).length }} members · {{ team.activeTaskCount || 0 }} active tasks)</span>
-                </div>
-                <div class="tb-actions">
-                  <button class="btn btn-warning" style="padding:4px 12px; font-size:11px" (click)="openTeamEdit(team)">Edit</button>
-                  <button class="btn btn-danger" style="padding:4px 12px; font-size:11px" (click)="confirmDeleteTeam(team.id)">Delete</button>
-                </div>
+        <div class="team-sec-header">
+          <span class="team-sec-title">My Teams</span>
+          <button class="btn btn-primary" (click)="openTeamCreate()">+ Create Team</button>
+        </div>
+
+        @if (teamsLoading) {
+          <div class="loading-center"><div class="spinner"></div></div>
+        }
+
+        @for (team of managedTeams; track team.id) {
+          <div class="team-block-card">
+            <div class="team-block-header">
+              <div class="tb-name-wrap">
+                <div class="tb-name">{{ team.name }}</div>
+                <div class="tb-meta">{{ getMembersList(team).length }} members · {{ team.activeTaskCount || 0 }} active tasks</div>
               </div>
-
-              <!-- Members list -->
-              <div class="member-list-wrap">
-                @for (member of (team.members || []); track member.id) {
-                  <div class="member-row">
-                    <span class="m-name">{{ member.fullName }}</span>
-                    <span class="role-badge" [class]="member.role">{{ member.role }}</span>
-                  </div>
-                }
-              </div>
-
-              <!-- Invite member row -->
-              <div class="invite-row" style="position:relative">
-                <input class="invite-input"
-                       [ngModel]="teamInviteUser[team.id] || ''"
-                       (ngModelChange)="teamInviteUser[team.id]=$event; searchTeamUsers(team.id,$event)"
-                       placeholder="Search to invite a member..." />
-                <button class="invite-btn">Invite</button>
-                
-                @if ((teamUserSearch[team.id] || []).length > 0) {
-                  <div class="invite-dropdown" style="position:absolute; top:100%; left:0; right:0; background:white; z-index:10; border:1px solid #cbd5e1; box-shadow:0 10px 15px rgba(0,0,0,0.1)">
-                    @for (u of teamUserSearch[team.id]; track u.id) {
-                      <div class="invite-item" style="padding:10px 16px; cursor:pointer; font-size:13px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:8px" (click)="inviteMember(team.id, u)">
-                        <div class="avatar-circle avatar-sm" [style.background]="getAvatarColor(u.fullName)" style="width:24px; height:24px; font-size:9px">{{ getInitials(u.fullName) }}</div>
-                        {{ u.fullName }}
-                      </div>
-                    }
-                  </div>
-                }
+              <div class="tb-actions">
+                <button class="btn btn-warning" style="padding:5px 12px;font-size:11px" (click)="openTeamEdit(team)">Edit</button>
+                <button class="btn btn-danger"  style="padding:5px 12px;font-size:11px" (click)="confirmDeleteTeam(team.id)">Delete</button>
               </div>
             </div>
-          }
-        </div>
+
+            <!-- ── Member list — uses getMemberId() to fix NG0955 ── -->
+            <div class="member-list-wrap">
+              @for (member of getMembersList(team); track getMemberId(member)) {
+                <div class="member-row">
+                  <div class="avatar-circle avatar-sm"
+                       [style.background]="getAvatarColor(getMemberName(member))">
+                    {{ getInitials(getMemberName(member)) }}
+                  </div>
+                  <span class="m-name">{{ getMemberName(member) }}</span>
+                  <span class="role-badge" [class]="getRoleBadge(getMemberRole(member))">
+                    {{ getMemberRole(member) }}
+                  </span>
+                </div>
+              }
+            </div>
+
+            <!-- ── Invite row ── -->
+            <div class="invite-row" style="position:relative">
+              <input class="invite-input"
+                     [ngModel]="teamInviteUser[team.id] || ''"
+                     (ngModelChange)="teamInviteUser[team.id] = $event; searchTeamUsers(team.id, $event)"
+                     placeholder="Search to invite a member…" />
+              <button class="invite-btn">Invite</button>
+
+              @if ((teamUserSearch[team.id] || []).length > 0) {
+                <div class="invite-dropdown">
+                  @for (u of teamUserSearch[team.id]; track u.id) {
+                    <div class="invite-item" (click)="inviteMember(team.id, u)">
+                      <div class="avatar-circle avatar-sm" [style.background]="getAvatarColor(u.fullName)">
+                        {{ getInitials(u.fullName) }}
+                      </div>
+                      {{ u.fullName }}
+                      <span style="color:var(--text-muted);font-size:11px;margin-left:auto">{{ u.email }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (!teamsLoading && managedTeams.length === 0) {
+          <div style="text-align:center;color:var(--text-hint);padding:40px;font-size:13px">
+            No teams yet. Create one to get started!
+          </div>
+        }
       </div>
     }
 
@@ -291,19 +345,19 @@
 
 <!-- ══ Delete Account Modal ══ -->
 @if (showDeleteAccountModal) {
-  <div class="modal-overlay">
-    <div class="modal-box">
+  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && (showDeleteAccountModal = false)">
+    <div class="modal-box" style="border-color:#6e1313">
       <div class="modal-header-bar">
-        <span>⚠️ Delete Account</span>
-        <button class="modal-close-btn" (click)="showDeleteAccountModal=false">✕</button>
+        <span style="color:#f85149">Delete Account</span>
+        <button class="modal-close-btn" (click)="showDeleteAccountModal = false">✕</button>
       </div>
       <div class="modal-body-pad">
         <p class="delete-warn">This will permanently delete all your data. Type your email to confirm:</p>
         <p class="delete-email">{{ currentUser?.email }}</p>
-        <input class="form-control mt-2" [(ngModel)]="deleteEmailConfirm" placeholder="Type your email..." />
+        <input class="form-control mt-2" [(ngModel)]="deleteEmailConfirm" placeholder="Type your email…" />
       </div>
       <div class="modal-footer-bar">
-        <button class="btn btn-ghost" (click)="showDeleteAccountModal=false">Cancel</button>
+        <button class="btn btn-ghost" (click)="showDeleteAccountModal = false">Cancel</button>
         <button class="btn btn-danger" (click)="deleteAccount()" [disabled]="deleteEmailConfirm !== currentUser?.email">
           Delete My Account
         </button>
@@ -311,26 +365,28 @@
     </div>
   </div>
 }
+
 <!-- ══ Team Create Modal ══ -->
 @if (showTeamCreateModal) {
-  <div class="modal-overlay">
+  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && (showTeamCreateModal = false)">
     <div class="modal-box">
       <div class="modal-header-bar">
         <span>Create New Team</span>
-        <button class="modal-close-btn" (click)="showTeamCreateModal=false">✕</button>
+        <button class="modal-close-btn" (click)="showTeamCreateModal = false">✕</button>
       </div>
       <div class="modal-body-pad">
         <div class="form-group mb-3">
-          <label>Team Name *</label>
+          <label class="upper-label">Team Name <span style="color:#f85149">*</span></label>
           <input class="form-control" [(ngModel)]="newTeamData.name" placeholder="e.g. Design Team" />
         </div>
         <div class="form-group">
-          <label>Description</label>
-          <textarea class="form-control" [(ngModel)]="newTeamData.description" rows="2" placeholder="Briefly describe the team's purpose"></textarea>
+          <label class="upper-label">Description</label>
+          <textarea class="form-control" [(ngModel)]="newTeamData.description" rows="2"
+                    placeholder="Briefly describe the team's purpose…"></textarea>
         </div>
       </div>
       <div class="modal-footer-bar">
-        <button class="btn btn-ghost" (click)="showTeamCreateModal=false">Cancel</button>
+        <button class="btn btn-ghost" (click)="showTeamCreateModal = false">Cancel</button>
         <button class="btn btn-primary" (click)="createTeam()">Create Team</button>
       </div>
     </div>
@@ -339,25 +395,25 @@
 
 <!-- ══ Team Edit Modal ══ -->
 @if (showTeamEditModal && editingTeam) {
-  <div class="modal-overlay">
+  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && (showTeamEditModal = false)">
     <div class="modal-box">
       <div class="modal-header-bar">
         <span>Edit Team</span>
-        <button class="modal-close-btn" (click)="showTeamEditModal=false">✕</button>
+        <button class="modal-close-btn" (click)="showTeamEditModal = false">✕</button>
       </div>
       <div class="modal-body-pad">
         <div class="form-group mb-3">
-          <label>Team Name</label>
+          <label class="upper-label">Team Name</label>
           <input class="form-control" [(ngModel)]="editingTeam.name" />
         </div>
         <div class="form-group">
-          <label>Description</label>
+          <label class="upper-label">Description</label>
           <textarea class="form-control" [(ngModel)]="editingTeam.description" rows="2"></textarea>
         </div>
       </div>
       <div class="modal-footer-bar">
-        <button class="btn btn-ghost" (click)="showTeamEditModal=false">Cancel</button>
-        <button class="btn btn-primary" (click)="saveTeamEdit()">Save</button>
+        <button class="btn btn-ghost" (click)="showTeamEditModal = false">Cancel</button>
+        <button class="btn btn-primary" (click)="saveTeamEdit()">Save Changes</button>
       </div>
     </div>
   </div>
@@ -367,11 +423,18 @@
 @if (showTeamDeleteConfirm) {
   <div class="modal-overlay">
     <div class="confirm-dialog">
-      <div class="confirm-icon">🗑️</div>
+      <div class="confirm-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="1.5">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6"/><path d="M14 11v6"/>
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+        </svg>
+      </div>
       <div class="confirm-title">Delete Team?</div>
-      <div class="confirm-body">This cannot be undone.</div>
+      <div class="confirm-body">This cannot be undone. All team data will be permanently removed.</div>
       <div class="confirm-actions">
-        <button class="btn btn-ghost" (click)="showTeamDeleteConfirm=false">Cancel</button>
+        <button class="btn btn-ghost" (click)="showTeamDeleteConfirm = false">Cancel</button>
         <button class="btn btn-danger" (click)="deleteTeam()">Delete</button>
       </div>
     </div>

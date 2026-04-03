@@ -1,5 +1,6 @@
 package com.infy.tmwa.config;
 
+import com.infy.tmwa.repository.TokenBlocklistRepository;
 import com.infy.tmwa.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,69 +22,58 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
+    private final TokenBlocklistRepository tokenBlocklistRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
+    protected void doFilterInternal(HttpServletRequest  request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain)
+                                    FilterChain         filterChain)
             throws ServletException, IOException {
 
-        // 1️⃣ Get Authorization header
         final String authHeader = request.getHeader("Authorization");
 
-        // 2️⃣ If header is missing or invalid → continue filter chain
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 3️⃣ Extract token
         final String token = authHeader.substring(7);
-
         String username;
 
         try {
-            // 4️⃣ Extract username (email) from token
             username = jwtService.extractUsername(token);
         } catch (Exception e) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 5️⃣ If username exists and authentication not already set
+        // ── Blocklist check — revoked tokens are rejected immediately ──
+        try {
+            String jti = jwtService.extractJti(token);
+            if (jti != null && tokenBlocklistRepository.existsByJti(jti)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+        } catch (Exception ignored) { /* malformed token — let validation below handle it */ }
+
         if (username != null &&
                 SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // 6️⃣ Load full User entity from DB — gives us role + isActive (F-W2-01)
-            UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(username);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            // 7️⃣ Validate token AND check isActive flag (F-W2-01)
-            // isEnabled() maps to User.isActive — deactivated users are blocked
-            // on every request, not just at login
             if (jwtService.isTokenValid(token) && userDetails.isEnabled()) {
 
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities() // ROLE_ADMIN / ROLE_MANAGER etc.
-                        );
+                                userDetails, null, userDetails.getAuthorities());
 
                 authToken.setDetails(
-                        new WebAuthenticationDetailsSource()
-                                .buildDetails(request)
-                );
+                        new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // 8️⃣ Set authentication in SecurityContext
-                // getAuthorities() returns ROLE_ADMIN etc. so
-                // @PreAuthorize("hasRole('ADMIN')") works on service methods
-                SecurityContextHolder.getContext()
-                        .setAuthentication(authToken);
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
 
-        // 9️⃣ Continue filter chain
         filterChain.doFilter(request, response);
     }
 }

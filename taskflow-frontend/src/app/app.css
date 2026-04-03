@@ -1,4 +1,4 @@
-body{
+/* body{
 font-family: Arial;
 background:#f4f6f8;
 margin:0;
@@ -44,4 +44,198 @@ padding:15px;
 margin-top:10px;
 border-radius:6px;
 box-shadow:0 1px 5px rgba(0,0,0,0.1);
+} */
+
+
+/* ══════════════════════════════════════════════
+   TaskFlow — Global Theme Variables
+   Add to your global styles.css (not a component CSS)
+   ══════════════════════════════════════════════ */
+
+/* ── Dark Theme (default) ── */
+:root,
+.theme-dark {
+  --nav-bg: #161b22;
+  --bg-primary: #0d1117;
+  --bg-card: #161b22;
+  --bg-secondary: #21262d;
+  --border-color: #30363d;
+  --text-primary: #e6edf3;
+  --text-secondary: #7d8590;
+  --text-muted: #484f58;
+  --danger: #f85149;
+  --success: #3fb950;
+  --warning: #e3b341;
+  --info: #58a6ff;
+
+  /* Component-level overrides */
+  color-scheme: dark;
+}
+
+/* ── Light Theme ── */
+.theme-light {
+  --nav-bg: #1e3a8a;
+  --bg-primary: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-secondary: #f1f5f9;
+  --border-color: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --danger: #ef4444;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+
+  color-scheme: light;
+}
+
+/* ── Base resets ── */
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background 0.2s, color 0.2s;
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ── Utility classes that respect theme ── */
+.bg-primary   { background: var(--bg-primary); }
+.bg-card      { background: var(--bg-card); }
+.bg-secondary { background: var(--bg-secondary); }
+.border-theme { border-color: var(--border-color); }
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted   { color: var(--text-muted); }
+
+/* ── Light mode overrides for page-level backgrounds ── */
+.theme-light .teams-page,
+.theme-light .admin-page,
+.theme-light .settings-layout {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.theme-light .stat-card,
+.theme-light .section-card,
+.theme-light .table-card,
+.theme-light .team-card,
+.theme-light .settings-sidebar,
+.theme-light .rbac-bar,
+.theme-light .team-block-card,
+.theme-light .team-detail-section,
+.theme-light .analytics-panel {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.theme-light .users-table th,
+.theme-light .detail-table th {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+.theme-light .users-table td,
+.theme-light .detail-table td {
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.theme-light .users-table tr:hover td,
+.theme-light .detail-table tr:hover td {
+  background: var(--bg-secondary);
+}
+
+.theme-light .admin-search,
+.theme-light .form-control,
+.theme-light .finput,
+.theme-light .invite-input {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.theme-light .filter-tab,
+.theme-light .btn-sort,
+.theme-light .btn-analytics,
+.theme-light .btn-ghost {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.theme-light .stat-value,
+.theme-light .page-title,
+.theme-light .tab-title,
+.theme-light .team-card-name,
+.theme-light .detail-title,
+.theme-light .tb-name,
+.theme-light .session-name,
+.theme-light .notif-title,
+.theme-light .user-name {
+  color: var(--text-primary);
+}
+
+.theme-light .stat-label,
+.theme-light .tab-subtitle,
+.theme-light .team-meta,
+.theme-light .session-sub,
+.theme-light .notif-sub,
+.theme-light .user-email-text,
+.theme-light .page-subtitle,
+.theme-light .text-muted-sm {
+  color: var(--text-secondary);
+}
+
+.theme-light .member-row {
+  border-color: var(--border-color);
+}
+
+.theme-light .notif-row {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.theme-light .modal-box,
+.theme-light .modal-box .modal-footer-bar {
+  background: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+.theme-light .role-select {
+  background-color: var(--bg-card);
+}
+
+.theme-light .sidebar-link {
+  color: var(--text-secondary);
+}
+
+.theme-light .sidebar-link:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.theme-light .settings-content {
+  background: var(--bg-primary);
+}
+
+.theme-light .settings-sidebar {
+  border-color: var(--border-color);
+}
+
+.theme-light .avatar-section {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.theme-light .team-block-header {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.theme-light .session-box {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
 }

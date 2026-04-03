@@ -6,44 +6,44 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 @Component({
-  selector:'app-login',
-  standalone:true,
-  imports:[FormsModule,CommonModule,RouterModule],
-  templateUrl:'./login.html',
-  styleUrls:['./login.css']
+  selector: 'app-login',
+  standalone: true,
+  imports: [FormsModule, CommonModule, RouterModule],
+  templateUrl: './login.html',
+  styleUrls: ['./login.css']
 })
-export class LoginComponent{
+export class LoginComponent {
 
-data:any={
-email:'',
-password:''
-}
+  data: any = {
+    email: '',
+    password: ''
+  }
 
-constructor(
-private auth:AuthService,
-private router:Router
-){}
+  constructor(
+    private auth: AuthService,
+    private router: Router
+  ) { }
 
-login(){
+  login() {
 
-console.log("Login clicked",this.data)
+    console.log("Login clicked", this.data)
 
-this.auth.login(this.data).subscribe({
+    this.auth.login(this.data).subscribe({
 
-next:(res:any)=>{
+      next: (res: any) => {
 
-localStorage.setItem('token',res.token)
+        localStorage.setItem('token', res.token)
 
-this.router.navigate(['/dashboard'])
+        this.router.navigate(['/dashboard'])
 
-},
+      },
 
-error:()=>{
-alert("Invalid credentials")
-}
+      error: () => {
+        alert("Invalid credentials")
+      }
 
-})
+    })
 
-}
+  }
 
 }
