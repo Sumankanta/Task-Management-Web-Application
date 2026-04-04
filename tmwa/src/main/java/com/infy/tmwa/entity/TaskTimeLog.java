@@ -1,5 +1,7 @@
 package com.infy.tmwa.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,13 +21,16 @@ public class TaskTimeLog {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "task_id", nullable = false)
+    @JsonIgnoreProperties({"subtasks", "comments", "attachments", "timeLogs",
+            "user", "assignee", "team", "hibernateLazyInitializer"})
     private Task task;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "logged_by", nullable = false)
+    @JsonIgnoreProperties({"password", "authorities", "teamMembers",
+            "hibernateLazyInitializer", "handler"})
     private User loggedBy;
 
-    // ── Always stored as minutes (e.g. 90 = 1h 30m) ──
     @Column(name = "duration_minutes", nullable = false)
     private int durationMinutes;
 
@@ -35,8 +40,6 @@ public class TaskTimeLog {
     @Column(length = 500)
     private String note;
 
-    // ── FALSE = created by timer stop, TRUE = manual entry ──
-    // Timer-generated entries cannot be deleted per SRS
     @Column(name = "is_manual", nullable = false)
     @Builder.Default
     private boolean isManual = false;
@@ -47,5 +50,16 @@ public class TaskTimeLog {
     @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    // ── Computed fields so frontend gets loggedByName directly ──────────
+    @JsonProperty("loggedByName")
+    public String getLoggedByName() {
+        return loggedBy != null ? loggedBy.getFullName() : null;
+    }
+
+    @JsonProperty("loggedById")
+    public Long getLoggedById() {
+        return loggedBy != null ? loggedBy.getId() : null;
     }
 }

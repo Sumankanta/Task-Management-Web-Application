@@ -93,7 +93,6 @@
             </span>
           </div>
 
-          <!-- Overlapping Avatars — use getMembersList() + getMemberId() / getMemberName() -->
           <div class="member-chips">
             <div class="avatar-stack">
               @for (m of getMembersList(team).slice(0, 4); track getMemberId(m)) {
@@ -140,6 +139,8 @@
     <!-- ── Team Detail Panel ── -->
     @if (selectedTeam) {
       <div class="team-detail-section">
+
+        <!-- ── Detail Header ── -->
         <div class="detail-header">
           <span class="detail-title">Team Detail — {{ selectedTeam.name }}</span>
           <div class="header-actions">
@@ -176,6 +177,7 @@
           </div>
         </div>
 
+        <!-- ── Members Table ── -->
         @if (detailLoading) {
           <div class="loading-center"><div class="spinner"></div></div>
         }
@@ -194,7 +196,6 @@
                 </tr>
               </thead>
               <tbody>
-                <!-- Use getDetailMembers() + getMemberId() for tracking -->
                 @for (member of getDetailMembers(); track getMemberId(member)) {
                   <tr>
                     <td>
@@ -229,6 +230,93 @@
               </tbody>
             </table>
           </div>
+
+          <!-- ══ Team Tasks Section ══ -->
+          <div class="team-tasks-section">
+            <div class="team-tasks-header">
+              <span class="team-tasks-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <path d="M9 12l2 2 4-4"/>
+                </svg>
+                Team Tasks
+              </span>
+              <span class="task-count-pill">{{ teamTasks.length }} task{{ teamTasks.length !== 1 ? 's' : '' }}</span>
+            </div>
+
+            @if (teamTasksLoading) {
+              <div class="loading-row">
+                <div class="spinner spinner-sm"></div>
+                <span>Loading tasks…</span>
+              </div>
+            } @else if (teamTasks.length === 0) {
+              <div class="tasks-empty">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="1.5" style="opacity:0.35">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <path d="M9 12l2 2 4-4"/>
+                </svg>
+                <p>No tasks assigned to this team yet.</p>
+                <span>Create a task and select this team to see it here.</span>
+              </div>
+            } @else {
+              <div style="overflow-x:auto">
+                <table class="detail-table tasks-table">
+                  <thead>
+                    <tr>
+                      <th>Task</th>
+                      <th>Priority</th>
+                      <th>Status</th>
+                      <th>Assignee</th>
+                      <th>Due Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (task of teamTasks; track task.id) {
+                      <tr>
+                        <td>
+                          <div class="task-title-cell">
+                            <span class="task-title-text">{{ task.title }}</span>
+                            @if (task.description) {
+                              <span class="task-desc-preview">{{ task.description | slice:0:60 }}{{ task.description.length > 60 ? '…' : '' }}</span>
+                            }
+                          </div>
+                        </td>
+                        <td>
+                          <span class="priority-badge" [class]="getPriorityClass(task.priority)">
+                            {{ task.priority }}
+                          </span>
+                        </td>
+                        <td>
+                          <span class="status-badge" [class]="getTaskStatusClass(task.status)">
+                            {{ getTaskStatusLabel(task.status) }}
+                          </span>
+                        </td>
+                        <td>
+                          @if (task.assignee) {
+                            <div class="member-name-cell">
+                              <div class="member-avatar-sm"
+                                   [style.background]="getAvatarColor(task.assignee.fullName)">
+                                {{ getInitials(task.assignee.fullName) }}
+                              </div>
+                              <span>{{ task.assignee.fullName }}</span>
+                            </div>
+                          } @else {
+                            <span class="text-muted-sm">Unassigned</span>
+                          }
+                        </td>
+                        <td class="text-muted-sm">
+                          {{ task.dueDate ? (task.dueDate | date:'MMM dd, yyyy') : '—' }}
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+          <!-- ══ End Team Tasks ══ -->
         }
       </div>
     }

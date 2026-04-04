@@ -829,3 +829,133 @@
     padding: 16px;
   }
 }
+
+/* ══ Team Tasks Section ══════════════════════════════════════════ */
+
+.team-tasks-section {
+  margin-top: 28px;
+  border-top: 1px solid var(--border-color, #30363d);
+  padding-top: 20px;
+}
+
+.team-tasks-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.team-tasks-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #e6edf3);
+}
+
+.task-count-pill {
+  background: var(--bg-tertiary, #161b22);
+  border: 1px solid var(--border-color, #30363d);
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 11px;
+  color: var(--text-muted, #8b949e);
+}
+
+.tasks-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 32px 0;
+  color: var(--text-muted, #8b949e);
+  text-align: center;
+}
+
+.tasks-empty p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.tasks-empty span {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Task table */
+.tasks-table {
+  margin-top: 4px;
+}
+
+.task-title-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.task-title-text {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--text-primary, #e6edf3);
+}
+
+.task-desc-preview {
+  font-size: 11px;
+  color: var(--text-muted, #8b949e);
+  font-style: italic;
+}
+
+/* Priority badges */
+.priority-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.priority-high {
+  background: rgba(248, 81, 73, 0.15);
+  color: #f85149;
+  border: 1px solid rgba(248, 81, 73, 0.3);
+}
+.priority-medium {
+  background: rgba(227, 179, 65, 0.15);
+  color: #e3b341;
+  border: 1px solid rgba(227, 179, 65, 0.3);
+}
+.priority-low {
+  background: rgba(63, 185, 80, 0.15);
+  color: #3fb950;
+  border: 1px solid rgba(63, 185, 80, 0.3);
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-todo {
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+.status-progress {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.status-done {
+  background: rgba(63, 185, 80, 0.15);
+  color: #3fb950;
+  border: 1px solid rgba(63, 185, 80, 0.3);
+}

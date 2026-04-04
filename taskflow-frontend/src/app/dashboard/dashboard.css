@@ -1369,3 +1369,102 @@ body.dark .detail-tab:hover { color: #94a3b8; }
 body.dark .detail-tab.active { color: #818cf8; border-bottom-color: #818cf8; }
 body.dark .detail-desc-block { color: #64748b; }
 
+
+/* ── Dark mode: modal select options background ── */
+body.dark .modal-field select option {
+  background: #0d1526;
+  color: #e2e8f0;
+}
+
+/* ── Dark mode: modal select arrow + text visible ── */
+body.dark .modal-field select {
+  background-color: rgba(255,255,255,0.05);
+  color: #e2e8f0;
+  border-color: rgba(255,255,255,0.1);
+  /* Force the dropdown arrow to be visible */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 30px;
+}
+
+/* ── Dark mode: input + textarea placeholder ── */
+body.dark .modal-field input::placeholder,
+body.dark .modal-field textarea::placeholder {
+  color: #334155;
+}
+
+/* ── Dark mode: input type=date calendar icon ── */
+body.dark .modal-field input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.6);
+}
+
+/* ── Dark mode: modal-row-3 labels (Priority/Assign/Team) ── */
+body.dark .modal-row-3 .modal-field label {
+  color: #64748b;
+}
+
+/* ── Dark mode: form-select-sm (team filter in dashboard) ── */
+body.dark .form-select-sm {
+  background-color: #0d1526;
+  border-color: rgba(255,255,255,0.1);
+  color: #94a3b8;
+}
+
+body.dark .form-select-sm option {
+  background: #0d1526;
+  color: #e2e8f0;
+}
+
+
+/* ══ PASTE THESE AT THE BOTTOM OF dashboard.css ══════════════════════════ */
+
+/* ── Dark mode: modal select options background ── */
+body.dark .modal-field select option {
+  background: #0d1526;
+  color: #e2e8f0;
+}
+
+/* ── Dark mode: modal select arrow + text visible ── */
+body.dark .modal-field select {
+  background-color: rgba(255,255,255,0.05);
+  color: #e2e8f0;
+  border-color: rgba(255,255,255,0.1);
+  /* Force the dropdown arrow to be visible */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 30px;
+}
+
+/* ── Dark mode: input + textarea placeholder ── */
+body.dark .modal-field input::placeholder,
+body.dark .modal-field textarea::placeholder {
+  color: #334155;
+}
+
+/* ── Dark mode: input type=date calendar icon ── */
+body.dark .modal-field input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.6);
+}
+
+/* ── Dark mode: modal-row-3 labels (Priority/Assign/Team) ── */
+body.dark .modal-row-3 .modal-field label {
+  color: #64748b;
+}
+
+/* ── Dark mode: form-select-sm (team filter in dashboard) ── */
+body.dark .form-select-sm {
+  background-color: #0d1526;
+  border-color: rgba(255,255,255,0.1);
+  color: #94a3b8;
+}
+
+body.dark .form-select-sm option {
+  background: #0d1526;
+  color: #e2e8f0;
+}

@@ -184,17 +184,18 @@ export class DashboardComponent implements OnInit {
   }
 
   startEdit(task: any) {
-    this.editingTaskId = task.id;
-    this.editTask = {
-      title: task.title,
-      description: task.description,
-      dueDate: task.dueDate,
-      status: task.status,
-      assignedTo: task.assignee?.id || null,
-      priority: task.priority || 'MEDIUM'
-    };
-    this.showEditModal = true;
-  }
+  this.editingTaskId = task.id;
+  this.editTask = {
+    title:       task.title,
+    description: task.description,
+    dueDate:     task.dueDate,
+    status:      task.status,
+    assignedTo:  task.assignee?.id || null,
+    priority:    task.priority || 'MEDIUM',
+    teamId:      task.team?.id || null
+  };
+  this.showEditModal = true;
+}
 
   cancelEdit() {
     this.editingTaskId = null;
@@ -259,20 +260,23 @@ export class DashboardComponent implements OnInit {
   onTeamFilterChange() { }
 
   filteredTasks() {
-    let list = this.currentFilter === 'ALL'
-      ? [...this.tasks]
-      : this.tasks.filter(t => t.status === this.currentFilter);
+  let list = this.currentFilter === 'ALL'
+    ? [...this.tasks]
+    : this.tasks.filter(t => t.status === this.currentFilter);
 
-    if (this.currentTeamFilter !== null) {
-      list = list.filter(t => t.teamId == this.currentTeamFilter);
-    }
-
-    if (this.sortByPriority) {
-      const order: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
-      list.sort((a,b) => (order[a.priority ?? 'MEDIUM'] ?? 1) - (order[b.priority ?? 'MEDIUM'] ?? 1));
-    }
-    return list;
+  if (this.currentTeamFilter !== null) {
+    // task.team is an object { id, name, ... } — not a flat teamId
+    list = list.filter(t => t.team?.id == this.currentTeamFilter);
   }
+
+  if (this.sortByPriority) {
+    const order: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+    list.sort((a, b) =>
+      (order[a.priority ?? 'MEDIUM'] ?? 1) - (order[b.priority ?? 'MEDIUM'] ?? 1)
+    );
+  }
+  return list;
+}
 
   togglePrioritySort() { this.sortByPriority = !this.sortByPriority; }
 

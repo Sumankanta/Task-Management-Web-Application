@@ -1,28 +1,26 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class TaskService {
 
-  API = "http://localhost:8081/api/tasks";
-  AUTH_API = "http://localhost:8081/api/auth";
+  API      = 'http://localhost:8081/api/tasks';
+  AUTH_API = 'http://localhost:8081/api/auth';
 
   constructor(private http: HttpClient) {}
 
   private getHeaders() {
-    const token = localStorage.getItem("token");
-
-    return {
-      headers: new HttpHeaders({
-        Authorization: `Bearer ${token}`
-      })
-    };
+    const token = localStorage.getItem('token');
+    return { headers: new HttpHeaders({ Authorization: `Bearer ${token}` }) };
   }
 
   getTasks() {
     return this.http.get<any[]>(this.API, this.getHeaders());
+  }
+
+  /** Get tasks assigned to a specific team */
+  getTasksByTeam(teamId: number) {
+    return this.http.get<any[]>(`${this.API}/team/${teamId}`, this.getHeaders());
   }
 
   createTask(task: any) {
@@ -33,12 +31,11 @@ export class TaskService {
     return this.http.delete(`${this.API}/${id}`, this.getHeaders());
   }
 
-  updateTask(id:number,task:any){
-    return this.http.put(`${this.API}/${id}`,task,this.getHeaders())
+  updateTask(id: number, task: any) {
+    return this.http.put(`${this.API}/${id}`, task, this.getHeaders());
   }
 
   getUsers() {
     return this.http.get<any[]>(`${this.AUTH_API}/users`, this.getHeaders());
   }
-
 }

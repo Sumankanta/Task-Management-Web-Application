@@ -5,6 +5,7 @@ import { AuthService } from '../services/auth';
 import { TeamService } from '../services/team';
 import { ToastService } from '../services/toast';
 import { HasRoleDirective } from '../shared/directives/has-role.directive';
+import { TaskService } from '../services/task';
 
 @Component({
   selector: 'app-teams',
@@ -17,6 +18,8 @@ export class TeamsComponent implements OnInit {
   teams: any[] = [];
   allUsers: any[] = [];
   loading = false;
+  teamTasks: any[] = [];
+  teamTasksLoading = false;
 
   // Detail panel
   selectedTeam: any = null;
@@ -49,7 +52,8 @@ export class TeamsComponent implements OnInit {
   constructor(
     private teamService: TeamService,
     private auth: AuthService,
-    private toast: ToastService
+    private toast: ToastService,
+    private taskService: TaskService   // ← was missing from constructor
   ) {}
 
   ngOnInit() {
@@ -87,9 +91,9 @@ export class TeamsComponent implements OnInit {
     this.analyticsLoaded = false;
     setTimeout(() => {
       this.summary = {
-        totalTeams: this.teams.length,
+        totalTeams:   this.teams.length,
         totalMembers: this.totalMembers,
-        activeTasks: this.activeTasks
+        activeTasks:  this.activeTasks
       };
       this.analyticsLoaded = true;
     }, 600);
@@ -110,27 +114,15 @@ export class TeamsComponent implements OnInit {
     return this.teams.reduce((sum, t) => sum + (t.activeTaskCount || 0), 0);
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // DEFENSIVE MEMBER FIELD HELPERS
-  //
-  // The backend may return members in one of these shapes:
-  //   Shape A (flat DTO):   { id, fullName, email, role, ... }
-  //   Shape B (TeamMember): { id, user: { id, fullName, email }, role, ... }
-  //
-  // These helpers normalise both shapes so the template never sees `undefined`.
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Member field helpers ─────────────────────────────────────────────────
 
-  /** The unique key to track by — prefer user.id over TeamMember.id */
   getMemberId(member: any): any {
     return member?.user?.id ?? member?.userId ?? member?.id ?? Math.random();
   }
 
-  /** The user's database id to pass to removeMember() */
   getMemberUserId(member: any): number {
     const id = member?.user?.id ?? member?.userId ?? member?.id;
-    if (!id) {
-      console.error('getMemberUserId: could not resolve userId from member', member);
-    }
+    if (!id) console.error('getMemberUserId: could not resolve userId from member', member);
     return id;
   }
 
@@ -146,61 +138,99 @@ export class TeamsComponent implements OnInit {
     return member?.role ?? member?.user?.role ?? '';
   }
 
-  /** Returns the members array from a team card (list view) */
   getMembersList(team: any): any[] {
     return team?.members ?? [];
   }
 
-  /** Returns the members array from the detail panel */
   getDetailMembers(): any[] {
-    // teamDetail may be the Team object itself, or { members: [...] }
     return this.teamDetail?.members ?? [];
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ── Utilities ────────────────────────────────────────────────────────────
 
   getInitials(name: string): string {
     return name?.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase() || '?';
   }
 
   getAvatarColor(name: string): string {
-    const colors = [
-      '#58a6ff', '#3fb950', '#bc8cff', '#d29922',
-      '#f78166', '#39d353', '#79c0ff', '#ffa657'
-    ];
+    const colors = ['#58a6ff', '#3fb950', '#bc8cff', '#d29922', '#f78166', '#39d353', '#79c0ff', '#ffa657'];
     let hash = 0;
     for (const c of name || '') hash = c.charCodeAt(0) + ((hash << 5) - hash);
     return colors[Math.abs(hash) % colors.length];
   }
 
+  getMemberRoleClass(role: string): string {
+    const map: Record<string, string> = {
+      ADMIN: 'role-admin', MANAGER: 'role-manager', MEMBER: 'role-member', VIEWER: 'role-viewer'
+    };
+    return map[role] || 'role-member';
+  }
+
+  // ── Task helpers ─────────────────────────────────────────────────────────
+
+  getTaskStatusClass(status: string): string {
+    const map: Record<string, string> = {
+      TODO: 'status-todo', IN_PROGRESS: 'status-progress', DONE: 'status-done'
+    };
+    return map[status] || 'status-todo';
+  }
+
+  getTaskStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+      TODO: 'To Do', IN_PROGRESS: 'In Progress', DONE: 'Done'
+    };
+    return map[status] || status;
+  }
+
+  getPriorityClass(priority: string): string {
+    const map: Record<string, string> = {
+      HIGH: 'priority-high', MEDIUM: 'priority-medium', LOW: 'priority-low'
+    };
+    return map[priority] || 'priority-medium';
+  }
+
+  // ── Team view / detail ───────────────────────────────────────────────────
+
   viewTeam(team: any) {
     if (this.selectedTeam?.id === team.id) {
-      this.selectedTeam = null;
-      this.teamDetail = null;
+      this.selectedTeam     = null;
+      this.teamDetail       = null;
+      this.teamTasks        = [];
       return;
     }
-    this.selectedTeam = team;
-    this.detailLoading = true;
+    this.selectedTeam     = team;
+    this.detailLoading    = true;
+    this.teamTasks        = [];
+    this.teamTasksLoading = true;
+
+    // Load members
     this.teamService.getTeam(team.id).subscribe({
       next: detail => {
-        this.teamDetail = detail;
+        this.teamDetail    = detail;
         this.detailLoading = false;
-
-        // Debug: log the first member so you can see the exact shape
         const members = this.getDetailMembers();
-        if (members.length > 0) {
-          console.log('[Teams] First member object:', members[0]);
-        }
+        if (members.length > 0) console.log('[Teams] First member:', members[0]);
       },
       error: () => {
         this.toast.show('Failed to load team details', 'error');
         this.detailLoading = false;
       }
     });
+
+    // Load tasks
+    this.taskService.getTasksByTeam(team.id).subscribe({
+      next: tasks => {
+        this.teamTasks        = tasks;
+        this.teamTasksLoading = false;
+      },
+      error: () => { this.teamTasksLoading = false; }
+    });
   }
 
+  // ── Edit ─────────────────────────────────────────────────────────────────
+
   openEdit(team: any) {
-    this.editTeamData = { id: team.id, name: team.name, description: team.description || '' };
+    this.editTeamData  = { id: team.id, name: team.name, description: team.description || '' };
     this.showEditModal = true;
   }
 
@@ -215,8 +245,10 @@ export class TeamsComponent implements OnInit {
     });
   }
 
+  // ── Delete ───────────────────────────────────────────────────────────────
+
   confirmDelete(id: number) {
-    this.deleteTargetId = id;
+    this.deleteTargetId    = id;
     this.showDeleteConfirm = true;
   }
 
@@ -228,7 +260,8 @@ export class TeamsComponent implements OnInit {
         this.showDeleteConfirm = false;
         if (this.selectedTeam?.id === this.deleteTargetId) {
           this.selectedTeam = null;
-          this.teamDetail = null;
+          this.teamDetail   = null;
+          this.teamTasks    = [];
         }
         this.deleteTargetId = null;
         this.loadTeams();
@@ -237,14 +270,13 @@ export class TeamsComponent implements OnInit {
     });
   }
 
+  // ── Members ──────────────────────────────────────────────────────────────
+
   searchMembers() {
     const q = this.memberSearch.toLowerCase();
     this.filteredUsers = q
-      ? this.allUsers.filter(
-          u =>
-            u.fullName.toLowerCase().includes(q) ||
-            u.email.toLowerCase().includes(q)
-        )
+      ? this.allUsers.filter(u =>
+          u.fullName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
       : [];
   }
 
@@ -252,7 +284,7 @@ export class TeamsComponent implements OnInit {
     if (!this.selectedMembers.find(m => m.id === user.id)) {
       this.selectedMembers = [...this.selectedMembers, user];
     }
-    this.memberSearch = '';
+    this.memberSearch  = '';
     this.filteredUsers = [];
   }
 
@@ -261,31 +293,23 @@ export class TeamsComponent implements OnInit {
   }
 
   createTeam() {
-    if (!this.newTeam.name.trim()) {
-      this.toast.show('Team name is required', 'warning');
-      return;
-    }
+    if (!this.newTeam.name.trim()) { this.toast.show('Team name is required', 'warning'); return; }
     this.createLoading = true;
-    this.teamService
-      .createTeam({
-        name: this.newTeam.name,
-        description: this.newTeam.description,
-        memberIds: this.selectedMembers.map(m => m.id)
-      })
-      .subscribe({
-        next: () => {
-          this.toast.show('Team created!', 'success');
-          this.showCreateModal = false;
-          this.newTeam = { name: '', description: '' };
-          this.selectedMembers = [];
-          this.createLoading = false;
-          this.loadTeams();
-        },
-        error: () => {
-          this.toast.show('Failed to create team', 'error');
-          this.createLoading = false;
-        }
-      });
+    this.teamService.createTeam({
+      name:        this.newTeam.name,
+      description: this.newTeam.description,
+      memberIds:   this.selectedMembers.map(m => m.id)
+    }).subscribe({
+      next: () => {
+        this.toast.show('Team created!', 'success');
+        this.showCreateModal = false;
+        this.newTeam         = { name: '', description: '' };
+        this.selectedMembers = [];
+        this.createLoading   = false;
+        this.loadTeams();
+      },
+      error: () => { this.toast.show('Failed to create team', 'error'); this.createLoading = false; }
+    });
   }
 
   addMember(teamId: number, user: any) {
@@ -293,9 +317,8 @@ export class TeamsComponent implements OnInit {
       next: () => {
         this.toast.show(`${user.fullName} joined team`, 'success');
         this.showAddMemberSearch = false;
-        this.memberSearch = '';
-        this.filteredUsers = [];
-        // Reload detail without collapsing
+        this.memberSearch        = '';
+        this.filteredUsers       = [];
         this.teamService.getTeam(teamId).subscribe({
           next: detail => { this.teamDetail = detail; },
           error: () => {}
@@ -314,7 +337,6 @@ export class TeamsComponent implements OnInit {
     this.teamService.removeMember(teamId, userId).subscribe({
       next: () => {
         this.toast.show('Member removed', 'success');
-        // Reload detail without collapsing
         this.teamService.getTeam(teamId).subscribe({
           next: detail => { this.teamDetail = detail; },
           error: () => {}
@@ -323,15 +345,5 @@ export class TeamsComponent implements OnInit {
       },
       error: () => this.toast.show('Failed to remove member', 'error')
     });
-  }
-
-  getMemberRoleClass(role: string): string {
-    const map: Record<string, string> = {
-      ADMIN:   'role-admin',
-      MANAGER: 'role-manager',
-      MEMBER:  'role-member',
-      VIEWER:  'role-viewer'
-    };
-    return map[role] || 'role-member';
   }
 }

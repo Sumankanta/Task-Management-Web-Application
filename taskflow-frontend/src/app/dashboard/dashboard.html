@@ -101,7 +101,7 @@
         <button (click)="setFilter('TODO')" [class.active]="currentFilter === 'TODO'"><span class="dot dot-todo"></span> To-Do</button>
         <button (click)="setFilter('IN_PROGRESS')" [class.active]="currentFilter === 'IN_PROGRESS'"><span class="dot dot-progress"></span> In Progress</button>
         <button (click)="setFilter('DONE')" [class.active]="currentFilter === 'DONE'"><span class="dot dot-done"></span> Done</button>
-        
+
         <div class="team-filter-wrap">
           <select class="form-select-sm" [(ngModel)]="currentTeamFilter" (change)="onTeamFilterChange()">
             <option [ngValue]="null">All Teams</option>
@@ -199,11 +199,11 @@
                 </svg>
                 {{ task.assignee?.fullName || 'Unassigned' }}
               </span>
-              <span class="meta-chip" *ngIf="task.teamName">
+              <span class="meta-chip" *ngIf="task.team?.name">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
                 </svg>
-                {{ task.teamName }}
+                {{ task.team?.name }}
               </span>
             </div>
           </div>

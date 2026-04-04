@@ -8,7 +8,6 @@ import java.time.LocalDate;
 
 @Data
 public class TaskDTO {
-
     private Long id;
     private String title;
     private String description;
@@ -16,4 +15,5 @@ public class TaskDTO {
     private TaskStatus status;
     private TaskPriority priority;
     private Long assignedTo;
+    private Long teamId;
 }

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnDestroy, OnChanges } from '@angular/core';
+import { Component, Input, OnDestroy, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TimeTrackingService } from '../../services/time-tracking';
@@ -52,27 +52,44 @@ export class TimeTrackingComponent implements OnChanges, OnDestroy {
 
   init() {
     this.loading = true;
+
+    // ── Load logs ──
     this.ttService.getTimeLogs(this.taskId).subscribe({
       next: logs => {
         this.timeLogs = logs;
         this.loading = false;
-        this.checkActiveTimer(logs);
       },
-      error: () => { this.toast.show('Failed to load time logs', 'error'); this.loading = false; }
+      error: () => {
+        this.toast.show('Failed to load time logs', 'error');
+        this.loading = false;
+      }
     });
-    this.ttService.getTotalTime(this.taskId).subscribe({
-      next: res => this.totalMinutes = res.totalMinutes
-    });
-  }
 
-  private checkActiveTimer(logs: any[]) {
-    const activeLog = logs.find(l => l.startTime && !l.isManual && !l.endTime);
-    if (activeLog) {
-      const startMs = new Date(activeLog.startTime).getTime();
-      this.elapsedSeconds = Math.floor((Date.now() - startMs) / 1000);
-      this.timerRunning = true;
-      this.startInterval();
-    }
+    // ── Load total ──
+    this.ttService.getTotalTime(this.taskId).subscribe({
+      next: res => (this.totalMinutes = res.totalMinutes),
+      error: () => {}
+    });
+
+    // ── Check active timer via dedicated endpoint (not from logs) ──
+    this.ttService.getTimerStatus(this.taskId).subscribe({
+      next: status => {
+        if (status.running && status.startTime) {
+          const startMs = new Date(status.startTime).getTime();
+          this.elapsedSeconds = Math.floor((Date.now() - startMs) / 1000);
+          this.timerRunning = true;
+          this.startInterval();
+        } else {
+          // No active timer — make sure UI is reset
+          if (!this.timerRunning) {
+            this.timerRunning = false;
+            this.elapsedSeconds = 0;
+            this.updateDisplay();
+          }
+        }
+      },
+      error: () => {} // silently ignore — timer status is non-critical
+    });
   }
 
   private startInterval() {
@@ -95,7 +112,7 @@ export class TimeTrackingComponent implements OnChanges, OnDestroy {
     const h = Math.floor(this.elapsedSeconds / 3600);
     const m = Math.floor((this.elapsedSeconds % 3600) / 60);
     const s = this.elapsedSeconds % 60;
-    this.timerDisplay = `${String(h).padStart(2,'0')} : ${String(m).padStart(2,'0')} : ${String(s).padStart(2,'0')}`;
+    this.timerDisplay = `${String(h).padStart(2, '0')} : ${String(m).padStart(2, '0')} : ${String(s).padStart(2, '0')}`;
   }
 
   startTimer() {
@@ -106,9 +123,22 @@ export class TimeTrackingComponent implements OnChanges, OnDestroy {
         this.startInterval();
         this.toast.show('Timer started', 'success');
       },
-      error: (err) => {
+      error: err => {
         if (err.status === 409) {
-          this.toast.show('A timer is already running for this task.', 'warning');
+          // Timer already running in DB — sync UI to running state
+          this.timerRunning = true;
+          this.toast.show('Timer resumed — already running', 'warning');
+          // Re-fetch status to get the correct startTime
+          this.ttService.getTimerStatus(this.taskId).subscribe({
+            next: status => {
+              if (status.running && status.startTime) {
+                const startMs = new Date(status.startTime).getTime();
+                this.elapsedSeconds = Math.floor((Date.now() - startMs) / 1000);
+                this.startInterval();
+              }
+            },
+            error: () => {}
+          });
         } else {
           this.toast.show('Failed to start timer', 'error');
         }
@@ -131,8 +161,11 @@ export class TimeTrackingComponent implements OnChanges, OnDestroy {
   }
 
   submitManual() {
-    const totalMins = (this.manualHours * 60) + this.manualMinutes;
-    if (totalMins <= 0) { this.toast.show('Enter a valid duration', 'warning'); return; }
+    const totalMins = this.manualHours * 60 + this.manualMinutes;
+    if (totalMins <= 0) {
+      this.toast.show('Enter a valid duration', 'warning');
+      return;
+    }
     this.ttService.addManualLog(this.taskId, {
       durationMinutes: totalMins,
       logDate: this.manualDate,
@@ -141,7 +174,8 @@ export class TimeTrackingComponent implements OnChanges, OnDestroy {
       next: () => {
         this.toast.show('Time logged', 'success');
         this.showManualForm = false;
-        this.manualHours = 0; this.manualMinutes = 0;
+        this.manualHours = 0;
+        this.manualMinutes = 0;
         this.manualNote = '';
         this.init();
       },
@@ -155,9 +189,9 @@ export class TimeTrackingComponent implements OnChanges, OnDestroy {
       next: () => {
         this.toast.show('Log deleted', 'success');
         this.timeLogs = this.timeLogs.filter(l => l.id !== log.id);
-        this.ttService.getTotalTime(this.taskId).subscribe(r => this.totalMinutes = r.totalMinutes);
+        this.ttService.getTotalTime(this.taskId).subscribe(r => (this.totalMinutes = r.totalMinutes));
       },
-      error: (err) => {
+      error: err => {
         if (err.status === 403) this.toast.show('Cannot delete timer entries', 'warning');
         else this.toast.show('Delete failed', 'error');
       }
@@ -166,6 +200,5 @@ export class TimeTrackingComponent implements OnChanges, OnDestroy {
 
   get isViewer(): boolean { return this.currentUser?.role === 'VIEWER'; }
   get totalFormatted(): string { return this.ttService.formatDuration(this.totalMinutes); }
-
   formatDuration(minutes: number): string { return this.ttService.formatDuration(minutes); }
 }

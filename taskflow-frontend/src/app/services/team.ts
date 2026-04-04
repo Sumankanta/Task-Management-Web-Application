@@ -5,6 +5,9 @@ const BASE = 'http://localhost:8081/api';
 
 @Injectable({ providedIn: 'root' })
 export class TeamService {
+  getTasksByTeam(id: any) {
+    throw new Error('Method not implemented.');
+  }
   constructor(private http: HttpClient) {}
 
   getTeams() {

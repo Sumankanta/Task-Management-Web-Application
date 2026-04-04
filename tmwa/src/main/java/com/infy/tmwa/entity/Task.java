@@ -41,8 +41,11 @@ public class Task {
     @JoinColumn(name = "assigned_to")
     private User assignee;
 
-    // ── FIX: @Column(updatable=false) + @PrePersist ensures this is
-    //         written to DB on INSERT and never overwritten on UPDATE ──
+    // ── Team association ──────────────────────────────────────────────
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id")
+    private Team team;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
