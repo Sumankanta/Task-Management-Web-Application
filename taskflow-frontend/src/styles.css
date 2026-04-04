@@ -9,58 +9,59 @@
 /* ── Dark Theme (default) ── */
 :root,
 [data-theme="dark"] {
-  --page-bg:           #0d1117;
-  --surface:           #161b22;
-  --surface-2:         #21262d;
-  --border:            #30363d;
-  --border-subtle:     #21262d;
+  /* ── UNIFIED BACKGROUND — matches dashboard dark ── */
+  --page-bg:           #060914;   /* was #0d1117 — now same as dashboard */
+  --surface:           #0d1526;   /* was #161b22 — lifted slightly */
+  --surface-2:         #131c2e;   /* was #21262d */
+  --border:            #1e2d45;   /* was #30363d */
+  --border-subtle:     #131c2e;   /* was #21262d */
   --text-primary:      #f0f6fc;
   --text-secondary:    #e6edf3;
   --text-muted:        #7d8590;
   --text-hint:         #484f58;
 
-  --nav-bg:            #161b22;
+  --nav-bg:            #0d1526;
   --nav-text:          rgba(255,255,255,0.75);
   --nav-active:        #ffffff;
   --nav-hover-bg:      rgba(255,255,255,0.10);
   --nav-active-bg:     rgba(255,255,255,0.15);
 
-  --input-bg:          #0d1117;
-  --input-border:      #30363d;
+  --input-bg:          #060914;
+  --input-border:      #1e2d45;
   --input-text:        #e6edf3;
   --input-placeholder: #484f58;
 
-  --card-bg:           #161b22;
-  --card-border:       #30363d;
+  --card-bg:           #0d1526;
+  --card-border:       #1e2d45;
 
-  --role-select-bg:    #0d1117;
+  --role-select-bg:    #060914;
 
-  --session-box-bg:    #0d1117;
-  --notif-row-bg:      #161b22;
+  --session-box-bg:    #060914;
+  --notif-row-bg:      #0d1526;
 
-  --sidebar-bg:        #161b22;
-  --sidebar-border:    #21262d;
+  --sidebar-bg:        #0d1526;
+  --sidebar-border:    #131c2e;
   --sidebar-link:      #8b949e;
-  --sidebar-hover-bg:  #21262d;
+  --sidebar-hover-bg:  #131c2e;
 
-  --table-header-bg:   #0d1117;
-  --table-row-hover:   #0d1117;
-  --table-border:      #21262d;
+  --table-header-bg:   #060914;
+  --table-row-hover:   #060914;
+  --table-border:      #131c2e;
 
-  --rbac-bar-bg:       #161b22;
-  --avatar-section-bg: #0d1117;
-  --avatar-section-border: #21262d;
+  --rbac-bar-bg:       #0d1526;
+  --avatar-section-bg: #060914;
+  --avatar-section-border: #131c2e;
 
-  --team-block-head-bg: #161b22;
+  --team-block-head-bg: #0d1526;
   --danger-zone-bg:    #1a0707;
 
-  --dropdown-bg:       #1c2128;
-  --confirm-dialog-bg: #161b22;
-  --modal-footer-bg:   #0d1117;
-  --modal-box-bg:      #161b22;
+  --dropdown-bg:       #0d1526;
+  --confirm-dialog-bg: #0d1526;
+  --modal-footer-bg:   #060914;
+  --modal-box-bg:      #0d1526;
 
   --stat-sub-color:    #484f58;
-  --invite-input-bg:   #0d1117;
+  --invite-input-bg:   #060914;
 }
 
 /* ── Light Theme ── */
@@ -129,4 +130,71 @@ html, body {
   background: var(--page-bg);
   color: var(--text-secondary);
   transition: background 0.2s ease, color 0.2s ease;
+  min-height: 100vh;
+}
+
+/* ══════════════════════════════════════════════
+   FORCE dashboard dark bg to match --page-bg
+   (dashboard.css hardcodes #060914 — sync it)
+   ══════════════════════════════════════════════ */
+[data-theme="dark"] body,
+body.dark {
+  background: var(--page-bg) !important;
+  background-color: var(--page-bg) !important;
+}
+
+[data-theme="dark"] .dashboard-bg {
+  background:
+    radial-gradient(ellipse 700px 400px at 10% 0%,  rgba(99,102,241,0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 300px at 90% 10%, rgba(139,92,246,0.04) 0%, transparent 70%),
+    var(--page-bg) !important;
+}
+
+/* Page containers — all use --page-bg */
+[data-theme="dark"] .admin-page,
+[data-theme="dark"] .teams-page,
+[data-theme="dark"] .settings-layout,
+[data-theme="dark"] .settings-content,
+[data-theme="dark"] .dashboard-container {
+  background: var(--page-bg) !important;
+}
+
+/* Cards / surfaces use --surface */
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .team-card,
+[data-theme="dark"] .section-card,
+[data-theme="dark"] .table-card,
+[data-theme="dark"] .team-detail-section,
+[data-theme="dark"] .security-panel,
+[data-theme="dark"] .analytics-panel,
+[data-theme="dark"] .settings-sidebar,
+[data-theme="dark"] .activity-panel,
+[data-theme="dark"] .task-card {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+/* Table headers */
+[data-theme="dark"] .users-table th,
+[data-theme="dark"] .detail-table th {
+  background: var(--page-bg) !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .users-table td,
+[data-theme="dark"] .detail-table td {
+  border-color: var(--border-subtle) !important;
+}
+
+/* Modals */
+[data-theme="dark"] .modal,
+[data-theme="dark"] .modal-box,
+[data-theme="dark"] .confirm-dialog {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+[data-theme="dark"] .modal-footer,
+[data-theme="dark"] .modal-footer-bar {
+  background: var(--page-bg) !important;
 }

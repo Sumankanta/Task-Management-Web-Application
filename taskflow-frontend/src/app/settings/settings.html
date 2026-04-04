@@ -1,35 +1,118 @@
 <div class="settings-layout">
-
   <!-- ══ Sidebar ══ -->
   <aside class="settings-sidebar">
     <div class="sidebar-brand">
       <div class="sidebar-brand-title">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#58a6ff"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
         </svg>
         Settings
       </div>
       <div class="sidebar-brand-sub">Manage your account</div>
     </div>
     <nav class="sidebar-nav">
-      <button class="sidebar-link" [class.active]="activeTab === 'profile'" (click)="setTab('profile')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <button
+        class="sidebar-link"
+        [class.active]="activeTab === 'profile'"
+        (click)="setTab('profile')"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+        </svg>
         Profile
       </button>
-      <button class="sidebar-link" [class.active]="activeTab === 'security'" (click)="setTab('security')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <button
+        class="sidebar-link"
+        [class.active]="activeTab === 'security'"
+        (click)="setTab('security')"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
         Security
       </button>
       <button class="sidebar-link" [class.active]="activeTab === 'theme'" (click)="setTab('theme')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="23" />
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+          <line x1="1" y1="12" x2="3" y2="12" />
+          <line x1="21" y1="12" x2="23" y2="12" />
+        </svg>
         Theme
       </button>
-      <button class="sidebar-link" [class.active]="activeTab === 'notifications'" (click)="setTab('notifications')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <button
+        class="sidebar-link"
+        [class.active]="activeTab === 'notifications'"
+        (click)="setTab('notifications')"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
         Notifications
+        @if (unreadCount > 0) {
+          <span class="notif-badge">{{ unreadCount }}</span>
+        }
       </button>
-      <button *appHasRole="['ADMIN','MANAGER']" class="sidebar-link" [class.active]="activeTab === 'team'" (click)="setTab('team')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <button
+        *appHasRole="['ADMIN', 'MANAGER']"
+        class="sidebar-link"
+        [class.active]="activeTab === 'team'"
+        (click)="setTab('team')"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
         Team Settings
       </button>
     </nav>
@@ -37,7 +120,6 @@
 
   <!-- ══ Content ══ -->
   <main class="settings-content">
-
     <!-- ═══ Profile ═══ -->
     @if (activeTab === 'profile') {
       <div class="tab-panel">
@@ -46,8 +128,8 @@
 
         <div class="section-card accent-blue">
           <div class="sec-label">Avatar &amp; identity</div>
-
           <div class="avatar-section">
+            <!-- FIX: bound to profileForm.avatarColor — updates instantly on pick -->
             <div class="avatar-circle avatar-lg" [style.background]="profileForm.avatarColor">
               {{ initials }}
             </div>
@@ -55,11 +137,12 @@
               <p class="picker-label">Avatar Color</p>
               <div class="swatches">
                 @for (col of avatarColors; track col) {
-                  <button class="swatch"
-                          [style.background]="col"
-                          [class.active]="profileForm.avatarColor === col"
-                          (click)="profileForm.avatarColor = col">
-                  </button>
+                  <button
+                    class="swatch"
+                    [style.background]="col"
+                    [class.active]="profileForm.avatarColor === col"
+                    (click)="pickAvatarColor(col)"
+                  ></button>
                 }
               </div>
             </div>
@@ -68,24 +151,35 @@
           <div class="form-row">
             <div class="form-group">
               <label class="upper-label">Full Name</label>
-              <input class="form-control" [(ngModel)]="profileForm.fullName" placeholder="Your full name" />
+              <input
+                class="form-control"
+                [(ngModel)]="profileForm.fullName"
+                placeholder="Your full name"
+              />
             </div>
             <div class="form-group">
               <label class="upper-label">Email Address</label>
-              <input class="form-control" [(ngModel)]="profileForm.email" type="email" placeholder="you@example.com" />
+              <input
+                class="form-control"
+                [(ngModel)]="profileForm.email"
+                type="email"
+                placeholder="you@example.com"
+              />
             </div>
           </div>
-
           <div class="form-group bio-group">
             <label class="upper-label">Bio <span class="opt">(optional)</span></label>
-            <textarea class="form-control"
-                      [(ngModel)]="profileForm.bio"
-                      rows="3"
-                      [maxlength]="bioMax"
-                      placeholder="Tell us about yourself..."></textarea>
-            <span class="bio-counter" [class.over]="bioLength >= bioMax">{{ bioLength }}/{{ bioMax }}</span>
+            <textarea
+              class="form-control"
+              [(ngModel)]="profileForm.bio"
+              rows="3"
+              [maxlength]="bioMax"
+              placeholder="Tell us about yourself..."
+            ></textarea>
+            <span class="bio-counter" [class.over]="bioLength >= bioMax"
+              >{{ bioLength }}/{{ bioMax }}</span
+            >
           </div>
-
           <button class="btn btn-primary" (click)="saveProfile()" [disabled]="saveProfileLoading">
             {{ saveProfileLoading ? 'Saving…' : 'Save Profile' }}
           </button>
@@ -93,11 +187,28 @@
 
         <div class="danger-zone">
           <div class="danger-title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+              />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
             Danger Zone
           </div>
-          <p class="danger-desc">Permanently delete your account and all associated data. This action cannot be undone.</p>
-          <button class="btn btn-danger" (click)="showDeleteAccountModal = true">Delete My Account</button>
+          <p class="danger-desc">
+            Permanently delete your account and all associated data. This action cannot be undone.
+          </p>
+          <button class="btn btn-danger" (click)="showDeleteAccountModal = true">
+            Delete My Account
+          </button>
         </div>
       </div>
     }
@@ -108,151 +219,608 @@
         <h2 class="tab-title">Security</h2>
         <p class="tab-subtitle">Manage your password and active sessions</p>
 
-        <div class="section-card accent-purple">
-          <div class="sec-label">Change password</div>
-          <div class="form-row three-col align-end">
-            <div class="form-group mb-0">
-              <label class="upper-label">Current Password</label>
-              <input class="form-control" type="password" [(ngModel)]="passwordForm.currentPassword" placeholder="••••••••" />
+        <div class="security-grid">
+          <!-- Change Password -->
+          <div class="security-panel">
+            <div class="security-panel-icon blue">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#58a6ff"
+                stroke-width="2"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
             </div>
-            <div class="form-group mb-0">
-              <label class="upper-label">New Password</label>
-              <input class="form-control" type="password" [(ngModel)]="passwordForm.newPassword" (ngModelChange)="onNewPasswordChange()" placeholder="min 8 characters" />
-              <div class="strength-wrap mt-2">
-                <span class="strength-text-sm">Strength:</span>
-                <div class="strength-bar-group">
-                  <div class="strength-bar-seg"
-                       [class.bg-red]="passwordStrength === 1"
-                       [class.bg-amber]="passwordStrength === 2"
-                       [class.bg-green]="passwordStrength === 3"></div>
-                  <div class="strength-bar-seg"
-                       [class.bg-amber]="passwordStrength === 2"
-                       [class.bg-green]="passwordStrength === 3"></div>
-                  <div class="strength-bar-seg"
-                       [class.bg-green]="passwordStrength === 3"></div>
+            <div class="security-panel-title">Change Password</div>
+            <div class="security-panel-desc">
+              Your password must be at least 8 characters and include an uppercase letter, a number,
+              and a special character.
+            </div>
+
+            <div class="pw-field-group">
+              <div class="pw-field">
+                <label class="pw-label">Current Password</label>
+                <div class="pw-input-wrap">
+                  <input
+                    class="pw-input"
+                    [type]="showCurrentPw ? 'text' : 'password'"
+                    [(ngModel)]="passwordForm.currentPassword"
+                    placeholder="Current Password"
+                  />
+                  <button
+                    class="pw-toggle-btn"
+                    type="button"
+                    (click)="showCurrentPw = !showCurrentPw"
+                  >
+                    @if (showCurrentPw) {
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"
+                        />
+                        <path
+                          d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"
+                        />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    } @else {
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    }
+                  </button>
                 </div>
-                <span class="strength-val-text"
+              </div>
+              <div class="pw-field">
+                <label class="pw-label">New Password</label>
+                <div class="pw-input-wrap">
+                  <input
+                    class="pw-input"
+                    [type]="showNewPw ? 'text' : 'password'"
+                    [(ngModel)]="passwordForm.newPassword"
+                    (ngModelChange)="onNewPasswordChange()"
+                    placeholder="New Password"
+                  />
+                  <button class="pw-toggle-btn" type="button" (click)="showNewPw = !showNewPw">
+                    @if (showNewPw) {
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"
+                        />
+                        <path
+                          d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"
+                        />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    } @else {
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    }
+                  </button>
+                </div>
+                @if (passwordForm.newPassword) {
+                  <div class="strength-wrap">
+                    <span class="strength-text-sm">Strength:</span>
+                    <div class="strength-bar-group">
+                      <div
+                        class="strength-bar-seg"
+                        [class.bg-red]="passwordStrength === 1"
+                        [class.bg-amber]="passwordStrength === 2"
+                        [class.bg-green]="passwordStrength === 3"
+                      ></div>
+                      <div
+                        class="strength-bar-seg"
+                        [class.bg-amber]="passwordStrength === 2"
+                        [class.bg-green]="passwordStrength === 3"
+                      ></div>
+                      <div class="strength-bar-seg" [class.bg-green]="passwordStrength === 3"></div>
+                    </div>
+                    <span
+                      class="strength-val-text"
                       [class.text-danger]="passwordStrength === 1"
                       [class.text-or]="passwordStrength === 2"
-                      [class.text-success]="passwordStrength === 3">
-                  {{ ['', 'Weak', 'Medium', 'Strong'][passwordStrength] }}
-                </span>
-              </div>
-            </div>
-            <div class="form-group mb-0">
-              <label class="upper-label">Confirm New</label>
-              <input class="form-control" type="password" [(ngModel)]="passwordForm.confirmPassword" placeholder="Repeat new password" />
-            </div>
-          </div>
-          @if (passwordError) {
-            <div class="text-danger mt-2" style="font-size:13px">{{ passwordError }}</div>
-          }
-          <button class="btn btn-primary mt-3 btn-lg" (click)="changePassword()">Update Password</button>
-        </div>
-
-        <div class="section-card accent-green">
-          <div class="sec-label">Active sessions</div>
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <p class="text-muted-sm m-0">Your account is signed in on these sessions.</p>
-            <button class="btn btn-danger" style="padding:7px 14px;font-size:12px" (click)="revokeAll()">Revoke All Others</button>
-          </div>
-          <div class="sessions-list">
-            @for (session of sessions; track session.jti) {
-              <div class="session-box">
-                <div class="session-left">
-                  <div class="session-icon" [class.active-icon]="session.current">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                         [attr.stroke]="session.current ? '#3fb950' : '#484f58'" stroke-width="2">
-                      <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
-                    </svg>
+                      [class.text-success]="passwordStrength === 3"
+                    >
+                      {{ ['', 'Weak', 'Medium', 'Strong'][passwordStrength] }}
+                    </span>
                   </div>
-                  <div>
-                    <div class="session-name">{{ session.current ? 'Current Session (This Device)' : (session.deviceInfo || session.device || 'Unknown') }}</div>
-                    <div class="session-sub">{{ session.device || session.deviceInfo || 'Unknown' }} · {{ session.location || 'Unknown' }} · {{ session.current ? 'Active now' : (session.lastActive | date:'short') }}</div>
-                    <div class="session-jti">jti: {{ session.jti?.slice(0, 8) }}…</div>
-                  </div>
-                </div>
-                <div>
-                  @if (session.current) {
-                    <span class="badge-hollow-green">Active</span>
-                  } @else {
-                    <button class="btn btn-danger" style="padding:5px 12px;font-size:11px" (click)="revokeSession(session.jti)">Revoke</button>
-                  }
-                </div>
-              </div>
-            }
-          </div>
-          <p class="text-muted-sm mt-3">Revoking a session adds its JWT ID to the token blocklist. The next request returns 401.</p>
-        </div>
-      </div>
-    }
-
-    <!-- ═══ Theme ═══ -->
-    @if (activeTab === 'theme') {
-      <div class="tab-panel">
-        <h2 class="tab-title">Theme</h2>
-        <p class="tab-subtitle">Choose how TaskFlow looks for you</p>
-        <div class="theme-cards">
-          @for (t of themes; track t.value) {
-            <div class="theme-card" [class.active]="themeService.currentTheme() === t.value" (click)="setTheme(t.value)">
-              <div class="theme-preview" [attr.data-theme-preview]="t.value">
-                <div class="preview-nav"></div>
-                <div class="preview-body">
-                  <div class="preview-card"></div>
-                  <div class="preview-card"></div>
-                </div>
-              </div>
-              <div class="theme-card-footer">
-                <span class="theme-icon">{{ t.icon }}</span>
-                <span class="theme-label">{{ t.label }}</span>
-                @if (themeService.currentTheme() === t.value) {
-                  <span class="check-mark">✓</span>
                 }
               </div>
+              <div class="pw-field">
+                <label class="pw-label">Confirm Password</label>
+                <div class="pw-input-wrap">
+                  <input
+                    class="pw-input"
+                    [type]="showConfirmPw ? 'text' : 'password'"
+                    [(ngModel)]="passwordForm.confirmPassword"
+                    placeholder="Confirm Password"
+                  />
+                  <button
+                    class="pw-toggle-btn"
+                    type="button"
+                    (click)="showConfirmPw = !showConfirmPw"
+                  >
+                    @if (showConfirmPw) {
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"
+                        />
+                        <path
+                          d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"
+                        />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    } @else {
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    }
+                  </button>
+                </div>
+              </div>
             </div>
-          }
+
+            @if (passwordError) {
+              <div
+                style="
+                  color: #f85149;
+                  font-size: 13px;
+                  margin-bottom: 14px;
+                  display: flex;
+                  align-items: center;
+                  gap: 6px;
+                "
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                {{ passwordError }}
+              </div>
+            }
+            <button class="btn-primary-full" (click)="changePassword()">Change Password</button>
+          </div>
+
+          <!-- Your Devices -->
+          <div class="security-panel">
+            <div class="security-panel-icon green">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#3fb950"
+                stroke-width="2"
+              >
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <line x1="8" y1="21" x2="16" y2="21" />
+                <line x1="12" y1="17" x2="12" y2="21" />
+              </svg>
+            </div>
+            <div class="security-panel-title">Your Devices</div>
+            <div class="security-panel-desc">
+              Devices currently signed in to your account. Remove any sessions you don't recognise.
+            </div>
+
+            @if (sessionsLoading) {
+              <div class="loading-center" style="padding: 20px"><div class="spinner"></div></div>
+            }
+
+            @if (!sessionsLoading) {
+              <button class="logout-all-btn" style="margin-bottom: 16px" (click)="revokeAll()">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Log Out From All Devices
+              </button>
+              <div class="devices-list">
+                @for (session of sessions; track session.jti) {
+                  <div class="device-row" [class.current-device]="session.current">
+                    <div
+                      class="device-icon-wrap"
+                      [class.active-device]="session.current"
+                      [class.inactive-device]="!session.current"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        [attr.stroke]="session.current ? '#3fb950' : '#7d8590'"
+                        stroke-width="2"
+                      >
+                        <rect x="2" y="3" width="20" height="14" rx="2" />
+                        <line x1="8" y1="21" x2="16" y2="21" />
+                        <line x1="12" y1="17" x2="12" y2="21" />
+                      </svg>
+                    </div>
+                    <div class="device-info">
+                      <div class="device-name">
+                        {{
+                          session.current
+                            ? 'Current Session (This Device)'
+                            : session.deviceInfo || session.device || 'Unknown Device'
+                        }}
+                      </div>
+                      <div class="device-meta">
+                        {{ session.location || 'Unknown' }} ·
+                        {{
+                          session.current
+                            ? 'Active now'
+                            : (session.lastActive | date: "MMM d, y 'at' h:mm a")
+                        }}
+                      </div>
+                      <div class="device-jti">jti: {{ session.jti?.slice(0, 12) }}…</div>
+                    </div>
+                    <div class="device-action">
+                      @if (session.current) {
+                        <span class="badge-active">Active</span>
+                      } @else {
+                        <button
+                          class="btn-revoke-icon"
+                          title="Revoke session"
+                          (click)="revokeSession(session.jti)"
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                          </svg>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (!sessions.length) {
+                  <div
+                    style="
+                      text-align: center;
+                      color: var(--text-hint);
+                      padding: 24px;
+                      font-size: 13px;
+                    "
+                  >
+                    No active sessions found.
+                  </div>
+                }
+              </div>
+              <p class="session-note">
+                Revoking a session adds its JWT ID to the token blocklist. The next request from
+                that session returns 401.
+              </p>
+            }
+          </div>
         </div>
       </div>
     }
 
-    <!-- ═══ Notifications ═══ -->
-    @if (activeTab === 'notifications') {
+    <!-- ═══ Theme — redesigned to match reference image ═══ -->
+    @if (activeTab === 'theme') {
       <div class="tab-panel">
-        <h2 class="tab-title">Notifications</h2>
-        <p class="tab-subtitle">Control which notifications TaskFlow shows you. Changes are saved automatically.</p>
+        <div class="theme-page-header">
+          <h2 class="tab-title">Appearance</h2>
+          <p class="tab-subtitle">Customize your theme for a tailored experience</p>
+        </div>
 
-        <div class="section-card no-pad">
-          <div class="notif-blocks-wrapper">
-            @for (row of notifRows; track row.key) {
-              <div class="notif-row">
-                <div class="notif-accent-left" [style.background]="row.color"></div>
-                <div class="notif-icon-box"
-                     [style.background]="row.iconBg"
-                     [style.border]="'1px solid ' + row.color + '40'">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                       [attr.stroke]="row.color" stroke-width="2">
-                    <circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/>
-                  </svg>
-                </div>
-                <div class="notif-text-wrap">
-                  <div class="notif-title">{{ row.label }}</div>
-                  <div class="notif-sub">{{ row.desc }}</div>
-                  <div class="notif-email-sms">In-app toast only — no email or SMS.</div>
-                </div>
-                <div class="notif-toggle-wrap">
-                  <label class="toggle">
-                    <input type="checkbox" [checked]="$any(notifPrefs)[row.key]" (change)="onNotifToggle(row.key)" />
-                    <span class="toggle-slider"></span>
-                  </label>
-                  <span class="toggle-text" [style.color]="$any(notifPrefs)[row.key] ? '#3fb950' : '#484f58'">
-                    {{ $any(notifPrefs)[row.key] ? 'ON' : 'OFF' }}
-                  </span>
+        <div class="theme-section-label">Theme</div>
+
+        <div class="theme-cards-new">
+          @for (t of themes; track t.value) {
+            <div
+              class="theme-card-new"
+              [class.selected]="selectedThemeForDisplay === t.value"
+              (click)="selectTheme(t.value)"
+            >
+              <!-- Mini UI preview -->
+              <div class="theme-preview-new" [attr.data-tp]="t.value">
+                <div class="tp-nav"></div>
+                <div class="tp-body">
+                  <div class="tp-line tp-line-lg"></div>
+                  <div class="tp-line tp-line-sm"></div>
+                  <div class="tp-btn"></div>
                 </div>
               </div>
+
+              <div class="theme-card-label">{{ t.label }}</div>
+            </div>
+          }
+        </div>
+
+        <div class="theme-actions">
+          <button class="btn btn-ghost" (click)="cancelTheme()" [disabled]="!pendingTheme">
+            Cancel
+          </button>
+          <button class="btn btn-save-theme" (click)="saveTheme()" [disabled]="!pendingTheme">
+            Save changes
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- ═══ Notifications — redesigned to match reference image ═══ -->
+    @if (activeTab === 'notifications') {
+      <div class="tab-panel">
+        <!-- Header row -->
+        <div class="notif-page-header">
+          <div>
+            <h2 class="tab-title">Notifications</h2>
+            @if (unreadCount > 0) {
+              <p class="tab-subtitle">
+                {{ unreadCount }} unread notification{{ unreadCount !== 1 ? 's' : '' }}
+              </p>
+            } @else {
+              <p class="tab-subtitle">All caught up!</p>
             }
           </div>
+          <div class="notif-header-actions">
+            <button
+              class="notif-action-btn notif-mark-all"
+              (click)="markAllRead()"
+              [disabled]="unreadCount === 0"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Mark All Read
+            </button>
+            <button
+              class="notif-action-btn notif-clear-all"
+              (click)="clearAllNotif()"
+              [disabled]="notifItems.length === 0"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              </svg>
+              Clear All
+            </button>
+          </div>
         </div>
-        <p class="text-muted-sm mt-2">Saved via PATCH /api/users/me/preferences. The NotificationService reads these flags before showing each toast.</p>
+
+        <!-- Filter tabs -->
+        <div class="notif-filter-tabs">
+          <button
+            class="notif-filter-tab"
+            [class.active]="notifFilter === 'ALL'"
+            (click)="notifFilter = 'ALL'"
+          >
+            All
+          </button>
+          <button
+            class="notif-filter-tab"
+            [class.active]="notifFilter === 'UNREAD'"
+            (click)="notifFilter = 'UNREAD'"
+          >
+            Unread
+            @if (unreadCount > 0) {
+              <span class="filter-count">({{ unreadCount }})</span>
+            }
+          </button>
+          <button
+            class="notif-filter-tab"
+            [class.active]="notifFilter === 'READ'"
+            (click)="notifFilter = 'READ'"
+          >
+            Read
+          </button>
+        </div>
+
+        <!-- Notification items -->
+        <div class="notif-items-list">
+          @if (filteredNotifItems.length === 0) {
+            <div class="notif-empty">
+              <svg
+                width="40"
+                height="40"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              <p>No notifications here</p>
+            </div>
+          }
+
+          @for (item of filteredNotifItems; track item.id) {
+            <div class="notif-item" [class.unread]="!item.read">
+              <div
+                class="notif-item-icon"
+                [style.background]="getNotifIconColor(item.type) + '22'"
+                [style.color]="getNotifIconColor(item.type)"
+              >
+                @if (item.type === 'success') {
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                } @else {
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                }
+              </div>
+              <div class="notif-item-body">
+                <div class="notif-item-title">{{ item.title }}</div>
+                <div class="notif-item-desc">{{ item.body }}</div>
+                <div class="notif-item-actions">
+                  @if (!item.read) {
+                    <button class="notif-inline-btn notif-mark-read" (click)="markRead(item)">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Mark as read
+                    </button>
+                  }
+                  <button class="notif-inline-btn notif-delete" (click)="deleteNotif(item)">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    </svg>
+                    Delete
+                  </button>
+                </div>
+              </div>
+              <div class="notif-item-time">{{ getRelativeTime(item.time) }}</div>
+              @if (!item.read) {
+                <div class="notif-unread-dot"></div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Notification Preferences section -->
+        <div class="notif-prefs-section">
+          <div class="notif-prefs-header">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14" />
+            </svg>
+            Notification Preferences
+          </div>
+
+          @for (row of notifRows; track row.key) {
+            <div class="notif-pref-row">
+              <div class="notif-pref-text">
+                <div class="notif-pref-label">{{ row.label }}</div>
+                <div class="notif-pref-desc">{{ row.desc }}</div>
+              </div>
+              <label class="toggle">
+                <input
+                  type="checkbox"
+                  [checked]="$any(notifPrefs)[row.key]"
+                  (change)="onNotifToggle(row.key)"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          }
+        </div>
       </div>
     }
 
@@ -261,69 +829,91 @@
       <div class="tab-panel">
         <h2 class="tab-title">Team Settings</h2>
         <p class="tab-subtitle">Manage teams you own or administer</p>
-
         <div class="rbac-guard-banner">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
           Visible to Admin and Manager roles only (RoleGuard applied)
         </div>
-
         <div class="team-sec-header">
           <span class="team-sec-title">My Teams</span>
           <button class="btn btn-primary" (click)="openTeamCreate()">+ Create Team</button>
         </div>
-
         @if (teamsLoading) {
           <div class="loading-center"><div class="spinner"></div></div>
         }
-
         @for (team of managedTeams; track team.id) {
           <div class="team-block-card">
             <div class="team-block-header">
-              <div class="tb-name-wrap">
+              <div>
                 <div class="tb-name">{{ team.name }}</div>
-                <div class="tb-meta">{{ getMembersList(team).length }} members · {{ team.activeTaskCount || 0 }} active tasks</div>
+                <div class="tb-meta">
+                  {{ getMembersList(team).length }} members · {{ team.activeTaskCount || 0 }} active
+                  tasks
+                </div>
               </div>
               <div class="tb-actions">
-                <button class="btn btn-warning" style="padding:5px 12px;font-size:11px" (click)="openTeamEdit(team)">Edit</button>
-                <button class="btn btn-danger"  style="padding:5px 12px;font-size:11px" (click)="confirmDeleteTeam(team.id)">Delete</button>
+                <button
+                  class="btn btn-warning"
+                  style="padding: 5px 12px; font-size: 11px"
+                  (click)="openTeamEdit(team)"
+                >
+                  Edit
+                </button>
+                <button
+                  class="btn btn-danger"
+                  style="padding: 5px 12px; font-size: 11px"
+                  (click)="confirmDeleteTeam(team.id)"
+                >
+                  Delete
+                </button>
               </div>
             </div>
-
-            <!-- ── Member list — uses getMemberId() to fix NG0955 ── -->
             <div class="member-list-wrap">
               @for (member of getMembersList(team); track getMemberId(member)) {
                 <div class="member-row">
-                  <div class="avatar-circle avatar-sm"
-                       [style.background]="getAvatarColor(getMemberName(member))">
+                  <div
+                    class="avatar-circle avatar-sm"
+                    [style.background]="getAvatarColor(getMemberName(member))"
+                  >
                     {{ getInitials(getMemberName(member)) }}
                   </div>
                   <span class="m-name">{{ getMemberName(member) }}</span>
-                  <span class="role-badge" [class]="getRoleBadge(getMemberRole(member))">
-                    {{ getMemberRole(member) }}
-                  </span>
+                  <span class="role-badge" [class]="getRoleBadge(getMemberRole(member))">{{
+                    getMemberRole(member)
+                  }}</span>
                 </div>
               }
             </div>
-
-            <!-- ── Invite row ── -->
-            <div class="invite-row" style="position:relative">
-              <input class="invite-input"
-                     [ngModel]="teamInviteUser[team.id] || ''"
-                     (ngModelChange)="teamInviteUser[team.id] = $event; searchTeamUsers(team.id, $event)"
-                     placeholder="Search to invite a member…" />
+            <div class="invite-row" style="position: relative">
+              <input
+                class="invite-input"
+                [ngModel]="teamInviteUser[team.id] || ''"
+                (ngModelChange)="teamInviteUser[team.id] = $event; searchTeamUsers(team.id, $event)"
+                placeholder="Search to invite a member…"
+              />
               <button class="invite-btn">Invite</button>
-
               @if ((teamUserSearch[team.id] || []).length > 0) {
                 <div class="invite-dropdown">
                   @for (u of teamUserSearch[team.id]; track u.id) {
                     <div class="invite-item" (click)="inviteMember(team.id, u)">
-                      <div class="avatar-circle avatar-sm" [style.background]="getAvatarColor(u.fullName)">
+                      <div
+                        class="avatar-circle avatar-sm"
+                        [style.background]="getAvatarColor(u.fullName)"
+                      >
                         {{ getInitials(u.fullName) }}
                       </div>
                       {{ u.fullName }}
-                      <span style="color:var(--text-muted);font-size:11px;margin-left:auto">{{ u.email }}</span>
+                      <span style="color: var(--text-muted); font-size: 11px; margin-left: auto">{{
+                        u.email
+                      }}</span>
                     </div>
                   }
                 </div>
@@ -331,34 +921,45 @@
             </div>
           </div>
         }
-
         @if (!teamsLoading && managedTeams.length === 0) {
-          <div style="text-align:center;color:var(--text-hint);padding:40px;font-size:13px">
+          <div style="text-align: center; color: var(--text-hint); padding: 40px; font-size: 13px">
             No teams yet. Create one to get started!
           </div>
         }
       </div>
     }
-
   </main>
 </div>
 
 <!-- ══ Delete Account Modal ══ -->
 @if (showDeleteAccountModal) {
-  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && (showDeleteAccountModal = false)">
-    <div class="modal-box" style="border-color:#6e1313">
+  <div
+    class="modal-overlay"
+    (click)="$event.target === $event.currentTarget && (showDeleteAccountModal = false)"
+  >
+    <div class="modal-box" style="border-color: #6e1313">
       <div class="modal-header-bar">
-        <span style="color:#f85149">Delete Account</span>
-        <button class="modal-close-btn" (click)="showDeleteAccountModal = false">✕</button>
+        <span style="color: #f85149">Delete Account</span
+        ><button class="modal-close-btn" (click)="showDeleteAccountModal = false">✕</button>
       </div>
       <div class="modal-body-pad">
-        <p class="delete-warn">This will permanently delete all your data. Type your email to confirm:</p>
+        <p class="delete-warn">
+          This will permanently delete all your data. Type your email to confirm:
+        </p>
         <p class="delete-email">{{ currentUser?.email }}</p>
-        <input class="form-control mt-2" [(ngModel)]="deleteEmailConfirm" placeholder="Type your email…" />
+        <input
+          class="form-control mt-2"
+          [(ngModel)]="deleteEmailConfirm"
+          placeholder="Type your email…"
+        />
       </div>
       <div class="modal-footer-bar">
         <button class="btn btn-ghost" (click)="showDeleteAccountModal = false">Cancel</button>
-        <button class="btn btn-danger" (click)="deleteAccount()" [disabled]="deleteEmailConfirm !== currentUser?.email">
+        <button
+          class="btn btn-danger"
+          (click)="deleteAccount()"
+          [disabled]="deleteEmailConfirm !== currentUser?.email"
+        >
           Delete My Account
         </button>
       </div>
@@ -368,21 +969,32 @@
 
 <!-- ══ Team Create Modal ══ -->
 @if (showTeamCreateModal) {
-  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && (showTeamCreateModal = false)">
+  <div
+    class="modal-overlay"
+    (click)="$event.target === $event.currentTarget && (showTeamCreateModal = false)"
+  >
     <div class="modal-box">
       <div class="modal-header-bar">
-        <span>Create New Team</span>
-        <button class="modal-close-btn" (click)="showTeamCreateModal = false">✕</button>
+        <span>Create New Team</span
+        ><button class="modal-close-btn" (click)="showTeamCreateModal = false">✕</button>
       </div>
       <div class="modal-body-pad">
         <div class="form-group mb-3">
-          <label class="upper-label">Team Name <span style="color:#f85149">*</span></label>
-          <input class="form-control" [(ngModel)]="newTeamData.name" placeholder="e.g. Design Team" />
+          <label class="upper-label">Team Name <span style="color: #f85149">*</span></label
+          ><input
+            class="form-control"
+            [(ngModel)]="newTeamData.name"
+            placeholder="e.g. Design Team"
+          />
         </div>
         <div class="form-group">
-          <label class="upper-label">Description</label>
-          <textarea class="form-control" [(ngModel)]="newTeamData.description" rows="2"
-                    placeholder="Briefly describe the team's purpose…"></textarea>
+          <label class="upper-label">Description</label
+          ><textarea
+            class="form-control"
+            [(ngModel)]="newTeamData.description"
+            rows="2"
+            placeholder="Briefly describe the team's purpose…"
+          ></textarea>
         </div>
       </div>
       <div class="modal-footer-bar">
@@ -395,20 +1007,23 @@
 
 <!-- ══ Team Edit Modal ══ -->
 @if (showTeamEditModal && editingTeam) {
-  <div class="modal-overlay" (click)="$event.target === $event.currentTarget && (showTeamEditModal = false)">
+  <div
+    class="modal-overlay"
+    (click)="$event.target === $event.currentTarget && (showTeamEditModal = false)"
+  >
     <div class="modal-box">
       <div class="modal-header-bar">
-        <span>Edit Team</span>
-        <button class="modal-close-btn" (click)="showTeamEditModal = false">✕</button>
+        <span>Edit Team</span
+        ><button class="modal-close-btn" (click)="showTeamEditModal = false">✕</button>
       </div>
       <div class="modal-body-pad">
         <div class="form-group mb-3">
-          <label class="upper-label">Team Name</label>
-          <input class="form-control" [(ngModel)]="editingTeam.name" />
+          <label class="upper-label">Team Name</label
+          ><input class="form-control" [(ngModel)]="editingTeam.name" />
         </div>
         <div class="form-group">
-          <label class="upper-label">Description</label>
-          <textarea class="form-control" [(ngModel)]="editingTeam.description" rows="2"></textarea>
+          <label class="upper-label">Description</label
+          ><textarea class="form-control" [(ngModel)]="editingTeam.description" rows="2"></textarea>
         </div>
       </div>
       <div class="modal-footer-bar">
@@ -424,15 +1039,25 @@
   <div class="modal-overlay">
     <div class="confirm-dialog">
       <div class="confirm-icon">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="1.5">
-          <polyline points="3 6 5 6 21 6"/>
-          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-          <path d="M10 11v6"/><path d="M14 11v6"/>
-          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+        <svg
+          width="36"
+          height="36"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#f85149"
+          stroke-width="1.5"
+        >
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+          <path d="M10 11v6" />
+          <path d="M14 11v6" />
+          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
         </svg>
       </div>
       <div class="confirm-title">Delete Team?</div>
-      <div class="confirm-body">This cannot be undone. All team data will be permanently removed.</div>
+      <div class="confirm-body">
+        This cannot be undone. All team data will be permanently removed.
+      </div>
       <div class="confirm-actions">
         <button class="btn btn-ghost" (click)="showTeamDeleteConfirm = false">Cancel</button>
         <button class="btn btn-danger" (click)="deleteTeam()">Delete</button>
