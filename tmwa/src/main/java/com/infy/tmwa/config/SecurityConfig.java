@@ -56,8 +56,8 @@ public class SecurityConfig {
                                 .requestMatchers("/api/auth/**").permitAll()
                                 // Admin only
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                                // Admin + Manager + Member
-                                .requestMatchers("/api/teams/**").hasAnyRole("ADMIN", "MANAGER", "MEMBER")
+                                // Admin + Manager + Member + Viewer
+                                .requestMatchers("/api/teams/**").hasAnyRole("ADMIN", "MANAGER", "MEMBER", "VIEWER")
                                 .requestMatchers(HttpMethod.GET, "/api/users").hasAnyRole("ADMIN", "MANAGER", "MEMBER", "VIEWER")
                                 // All authenticated users
                                 .anyRequest().authenticated()

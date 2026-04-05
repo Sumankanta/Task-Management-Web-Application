@@ -9,7 +9,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +32,6 @@ public class TeamService {
         Team saved = teamRepository.save(team);
         log.info("Team '{}' created by {}", saved.getName(), manager.getEmail());
 
-        // Auto-add manager as first member
         teamMemberRepository.save(TeamMember.builder()
                 .team(saved).user(manager).build());
         return saved;
@@ -38,10 +39,28 @@ public class TeamService {
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','MEMBER','VIEWER')")
     public List<Team> getTeams(User user) {
-        if (user.getRole() == UserRole.ADMIN)   return teamRepository.findAll();
-        if (user.getRole() == UserRole.MANAGER) return teamRepository.findByManager(user);
-        return teamMemberRepository.findByUser(user)
-                .stream().map(TeamMember::getTeam).distinct().toList();
+        if (user.getRole() == UserRole.ADMIN) {
+            // Admin sees all teams
+            return teamRepository.findAll();
+        }
+
+        // MANAGER, MEMBER, VIEWER — all see teams they belong to (as member OR as manager)
+        List<Team> memberOf = teamMemberRepository.findByUser(user)
+                .stream()
+                .map(TeamMember::getTeam)
+                .collect(Collectors.toList());
+
+        // Also include teams the manager created (in case they're not auto-added as member)
+        if (user.getRole() == UserRole.MANAGER) {
+            List<Team> managedTeams = teamRepository.findByManager(user);
+            for (Team t : managedTeams) {
+                if (memberOf.stream().noneMatch(m -> m.getId().equals(t.getId()))) {
+                    memberOf.add(t);
+                }
+            }
+        }
+
+        return memberOf.stream().distinct().collect(Collectors.toList());
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','MEMBER','VIEWER')")
@@ -105,6 +124,7 @@ public class TeamService {
                 .orElseThrow(() -> new RuntimeException("Team not found: " + id));
     }
 
+    // Admin can access any team; Manager can only access teams they manage
     private void checkTeamAccess(Team team, User user) {
         if (user.getRole() == UserRole.ADMIN) return;
         if (!team.getManager().getId().equals(user.getId())) {
