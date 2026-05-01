@@ -9,7 +9,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,9 +17,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TeamService {
 
-    private final TeamRepository       teamRepository;
-    private final TeamMemberRepository teamMemberRepository;
-    private final UserRepository       userRepository;
+    private final TeamRepository         teamRepository;
+    private final TeamMemberRepository   teamMemberRepository;
+    private final UserRepository         userRepository;
+    private final NotificationService    notificationService;
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public Team createTeam(TeamDTO dto, User manager) {
@@ -31,35 +31,25 @@ public class TeamService {
                 .build();
         Team saved = teamRepository.save(team);
         log.info("Team '{}' created by {}", saved.getName(), manager.getEmail());
-
-        teamMemberRepository.save(TeamMember.builder()
-                .team(saved).user(manager).build());
+        teamMemberRepository.save(TeamMember.builder().team(saved).user(manager).build());
         return saved;
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','MEMBER','VIEWER')")
     public List<Team> getTeams(User user) {
-        if (user.getRole() == UserRole.ADMIN) {
-            // Admin sees all teams
-            return teamRepository.findAll();
-        }
+        if (user.getRole() == UserRole.ADMIN) return teamRepository.findAll();
 
-        // MANAGER, MEMBER, VIEWER — all see teams they belong to (as member OR as manager)
         List<Team> memberOf = teamMemberRepository.findByUser(user)
-                .stream()
-                .map(TeamMember::getTeam)
-                .collect(Collectors.toList());
+                .stream().map(TeamMember::getTeam).collect(Collectors.toList());
 
-        // Also include teams the manager created (in case they're not auto-added as member)
         if (user.getRole() == UserRole.MANAGER) {
-            List<Team> managedTeams = teamRepository.findByManager(user);
-            for (Team t : managedTeams) {
+            List<Team> managed = teamRepository.findByManager(user);
+            for (Team t : managed) {
                 if (memberOf.stream().noneMatch(m -> m.getId().equals(t.getId()))) {
                     memberOf.add(t);
                 }
             }
         }
-
         return memberOf.stream().distinct().collect(Collectors.toList());
     }
 
@@ -74,9 +64,7 @@ public class TeamService {
     public Team updateTeam(Long teamId, TeamDTO dto, User requester) {
         Team team = findTeam(teamId);
         checkTeamAccess(team, requester);
-        if (dto.getName() != null && !dto.getName().isBlank()) {
-            team.setName(dto.getName());
-        }
+        if (dto.getName() != null && !dto.getName().isBlank()) team.setName(dto.getName());
         team.setDescription(dto.getDescription());
         Team updated = teamRepository.save(team);
         log.info("Team {} updated by {}", teamId, requester.getEmail());
@@ -93,9 +81,19 @@ public class TeamService {
         if (teamMemberRepository.existsByTeamAndUser(team, userToAdd)) {
             throw new RuntimeException("User is already a member of this team");
         }
-        TeamMember member = TeamMember.builder().team(team).user(userToAdd).build();
-        TeamMember saved = teamMemberRepository.save(member);
+        TeamMember saved = teamMemberRepository.save(
+                TeamMember.builder().team(team).user(userToAdd).build());
         log.info("User {} added to team {} by {}", userId, teamId, requester.getEmail());
+
+        // ── Notify the added user (if different from requester) ──
+        if (!userToAdd.getId().equals(requester.getId())) {
+            notificationService.create(
+                    userToAdd,
+                    "Added to Team",
+                    requester.getFullName() + " added you to team \"" + team.getName() + "\"",
+                    "TEAM_ADDED"
+            );
+        }
         return saved;
     }
 
@@ -108,6 +106,16 @@ public class TeamService {
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
         teamMemberRepository.deleteByTeamAndUser(team, userToRemove);
         log.info("User {} removed from team {} by {}", userId, teamId, requester.getEmail());
+
+        // ── Notify the removed user ──
+        if (!userToRemove.getId().equals(requester.getId())) {
+            notificationService.create(
+                    userToRemove,
+                    "Removed from Team",
+                    "You were removed from team \"" + team.getName() + "\"",
+                    "TEAM_REMOVED"
+            );
+        }
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
@@ -124,7 +132,6 @@ public class TeamService {
                 .orElseThrow(() -> new RuntimeException("Team not found: " + id));
     }
 
-    // Admin can access any team; Manager can only access teams they manage
     private void checkTeamAccess(Team team, User user) {
         if (user.getRole() == UserRole.ADMIN) return;
         if (!team.getManager().getId().equals(user.getId())) {

@@ -59,6 +59,7 @@ public class SecurityConfig {
                                 // Admin + Manager + Member + Viewer
                                 .requestMatchers("/api/teams/**").hasAnyRole("ADMIN", "MANAGER", "MEMBER", "VIEWER")
                                 .requestMatchers(HttpMethod.GET, "/api/users").hasAnyRole("ADMIN", "MANAGER", "MEMBER", "VIEWER")
+                                .requestMatchers("/api/notifications/**").hasAnyRole("ADMIN","MANAGER","MEMBER","VIEWER")
                                 // All authenticated users
                                 .anyRequest().authenticated()
                 )

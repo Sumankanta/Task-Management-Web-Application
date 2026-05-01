@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../services/auth';
-import { NotificationPreferences, NotificationService } from '../services/notification';
+import { AppNotification, NotificationPreferences, NotificationService } from '../services/notification';
 import { TeamService } from '../services/team';
 import { ThemeMode, ThemeService } from '../services/theme';
 import { ToastService } from '../services/toast';
@@ -21,20 +21,9 @@ export class SettingsComponent implements OnInit {
   currentUser: any = null;
 
   // ── Profile ──
-  profileForm = {
-    fullName: '',
-    email: '',
-    bio: '',
-    avatarColor: '#6366f1'
-  };
-
+  profileForm = { fullName: '', email: '', bio: '', avatarColor: '#6366f1' };
   bioMax = 200;
-
-  avatarColors = [
-    '#6366f1', '#3fb950', '#e3b341', '#58a6ff',
-    '#bc8cff', '#ec4899', '#14b8a6', '#f97316'
-  ];
-
+  avatarColors = ['#6366f1','#3fb950','#e3b341','#58a6ff','#bc8cff','#ec4899','#14b8a6','#f97316'];
   saveProfileLoading = false;
   showDeleteAccountModal = false;
   deleteEmailConfirm = '';
@@ -50,29 +39,26 @@ export class SettingsComponent implements OnInit {
   showConfirmPw = false;
 
   // ── Theme ──
-  // Pending selection (not applied until Save is clicked)
   pendingTheme: ThemeMode | null = null;
-
   themes: { value: ThemeMode; label: string }[] = [
     { value: 'LIGHT', label: 'Light mode' },
-    { value: 'DARK', label: 'Dark mode' },
-    { value: 'SYSTEM', label: 'Auto' }
+    { value: 'DARK',  label: 'Dark mode'  },
+    { value: 'SYSTEM',label: 'Auto'       }
   ];
 
   // ── Notifications ──
   notifPrefs!: NotificationPreferences;
   private notifDebounce: any;
-
-  // In-app notification items (mock — replace with real data from backend)
-  notifItems: any[] = [];
+  notifItems: AppNotification[] = [];
+  notifLoading = false;
   notifFilter: 'ALL' | 'UNREAD' | 'READ' = 'ALL';
 
   notifRows = [
-    { key: 'taskAssigned', label: 'Task assigned to me', desc: 'Show a toast when someone assigns a task to you', color: '#58a6ff', iconBg: '#0d2137' },
-    { key: 'commentOnTask', label: 'Comment on my task', desc: 'Notify when someone comments on a task you own', color: '#3fb950', iconBg: '#0d2a14' },
-    { key: 'subtaskCompleted', label: 'Subtask completed', desc: 'When a subtask on your task is marked done', color: '#bc8cff', iconBg: '#1a0f2e' },
-    { key: 'taskOverdue', label: 'Task overdue', desc: 'Banner when any of your tasks become overdue', color: '#f85149', iconBg: '#2d0f0f' },
-    { key: 'teamUpdates', label: 'Team updates', desc: 'Added to or removed from a team', color: '#e3b341', iconBg: '#2d1f07' },
+    { key: 'taskAssigned',     label: 'Task assigned to me',  desc: 'Notify when someone assigns a task to you',         color: '#58a6ff', iconBg: '#0d2137' },
+    { key: 'commentOnTask',    label: 'Comment on my task',   desc: 'Notify when someone comments on a task you own',    color: '#3fb950', iconBg: '#0d2a14' },
+    { key: 'subtaskCompleted', label: 'Subtask completed',    desc: 'When a subtask on your task is marked done',        color: '#bc8cff', iconBg: '#1a0f2e' },
+    { key: 'taskOverdue',      label: 'Task overdue',         desc: 'Banner when any of your tasks become overdue',      color: '#f85149', iconBg: '#2d0f0f' },
+    { key: 'teamUpdates',      label: 'Team updates',         desc: 'Added to or removed from a team',                   color: '#e3b341', iconBg: '#2d1f07' },
   ];
 
   // ── Team Settings ──
@@ -96,21 +82,19 @@ export class SettingsComponent implements OnInit {
     private notifService: NotificationService,
     private route: ActivatedRoute,
     private router: Router
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.currentUser = this.auth.getCurrentUser();
-
-    // ── FIX: always seed profileForm from currentUser so avatar is reactive ──
-    this.profileForm.fullName = this.currentUser?.fullName || '';
-    this.profileForm.email = this.currentUser?.email || '';
-    this.profileForm.bio = this.currentUser?.bio || '';
+    this.profileForm.fullName    = this.currentUser?.fullName    || '';
+    this.profileForm.email       = this.currentUser?.email       || '';
+    this.profileForm.bio         = this.currentUser?.bio         || '';
     this.profileForm.avatarColor = this.currentUser?.avatarColor || '#6366f1';
 
     this.route.queryParams.subscribe(params => {
       this.activeTab = params['tab'] || 'profile';
-      if (this.activeTab === 'security') this.loadSessions();
-      if (this.activeTab === 'team') this.loadManagedTeams();
+      if (this.activeTab === 'security')      this.loadSessions();
+      if (this.activeTab === 'team')          this.loadManagedTeams();
       if (this.activeTab === 'notifications') this.loadNotifications();
     });
 
@@ -125,54 +109,37 @@ export class SettingsComponent implements OnInit {
     this.router.navigate([], { queryParams: { tab }, queryParamsHandling: 'merge' });
   }
 
-  // ── Profile ──
+  // ── Profile ──────────────────────────────────────────────────────
+
   get initials(): string {
-    // Always derived from profileForm so it updates immediately on edit
-    return this.profileForm.fullName
-      ?.split(' ')
-      .map((n: string) => n[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase() || '?';
+    return this.profileForm.fullName?.split(' ')
+      .map((n: string) => n[0]).slice(0, 2).join('').toUpperCase() || '?';
   }
 
-  get bioLength(): number {
-    return this.profileForm.bio?.length || 0;
-  }
+  get bioLength(): number { return this.profileForm.bio?.length || 0; }
 
-  /** FIX: pick a color → update profileForm immediately; avatar re-renders reactively */
-  pickAvatarColor(color: string) {
-    this.profileForm.avatarColor = color;
-  }
+  pickAvatarColor(color: string) { this.profileForm.avatarColor = color; }
 
   saveProfile() {
     this.saveProfileLoading = true;
     this.auth.updateProfile({
-      fullName: this.profileForm.fullName,
-      email: this.profileForm.email,
-      bio: this.profileForm.bio,
+      fullName:    this.profileForm.fullName,
+      email:       this.profileForm.email,
+      bio:         this.profileForm.bio,
       avatarColor: this.profileForm.avatarColor
     }).subscribe({
-      next: (updatedUser?: any) => {
+      next: () => {
         this.toast.show('Profile saved!', 'success');
         this.saveProfileLoading = false;
-        // Refresh currentUser — keep profileForm as source of truth for avatar
         this.currentUser = this.auth.getCurrentUser();
-        if (updatedUser?.avatarColor) {
-          this.profileForm.avatarColor = updatedUser.avatarColor;
-        }
       },
-      error: () => {
-        this.toast.show('Failed to save profile', 'error');
-        this.saveProfileLoading = false;
-      }
+      error: () => { this.toast.show('Failed to save profile', 'error'); this.saveProfileLoading = false; }
     });
   }
 
   deleteAccount() {
     if (this.deleteEmailConfirm !== this.currentUser?.email) {
-      this.toast.show('Email does not match', 'error');
-      return;
+      this.toast.show('Email does not match', 'error'); return;
     }
     this.auth.deleteAccount().subscribe({
       next: () => { this.auth.logout(); this.router.navigate(['/register']); },
@@ -180,7 +147,8 @@ export class SettingsComponent implements OnInit {
     });
   }
 
-  // ── Security ──
+  // ── Security ──────────────────────────────────────────────────────
+
   onNewPasswordChange() {
     const p = this.passwordForm.newPassword;
     let score = 0;
@@ -197,13 +165,12 @@ export class SettingsComponent implements OnInit {
     if (this.passwordStrength < 2) { this.passwordError = 'Password is too weak'; return; }
     this.auth.changePassword({
       currentPassword: this.passwordForm.currentPassword,
-      newPassword: this.passwordForm.newPassword
+      newPassword:     this.passwordForm.newPassword
     }).subscribe({
       next: () => {
         this.toast.show('Password changed!', 'success');
         this.passwordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
-        this.passwordStrength = 0;
-        this.passwordError = '';
+        this.passwordStrength = 0; this.passwordError = '';
         this.showCurrentPw = this.showNewPw = this.showConfirmPw = false;
       },
       error: err => {
@@ -215,7 +182,7 @@ export class SettingsComponent implements OnInit {
   loadSessions() {
     this.sessionsLoading = true;
     this.auth.getSessions().subscribe({
-      next: s => { this.sessions = s; this.sessionsLoading = false; },
+      next: s  => { this.sessions = s; this.sessionsLoading = false; },
       error: () => { this.toast.show('Failed to load sessions', 'error'); this.sessionsLoading = false; }
     });
   }
@@ -234,11 +201,9 @@ export class SettingsComponent implements OnInit {
     });
   }
 
-  // ── Theme ──
-  /** Select a theme card — does NOT apply immediately; waits for Save */
-  selectTheme(theme: ThemeMode) {
-    this.pendingTheme = theme;
-  }
+  // ── Theme ──────────────────────────────────────────────────────────
+
+  selectTheme(theme: ThemeMode) { this.pendingTheme = theme; }
 
   get selectedThemeForDisplay(): ThemeMode {
     return this.pendingTheme ?? this.themeService.currentTheme();
@@ -252,46 +217,64 @@ export class SettingsComponent implements OnInit {
     this.pendingTheme = null;
   }
 
-  cancelTheme() {
-    this.pendingTheme = null;
-  }
+  cancelTheme() { this.pendingTheme = null; }
 
-  // ── Notifications ──
+  // ── Notifications ─────────────────────────────────────────────────
+
   loadNotifications() {
-    // Seed with mock data — replace with real API call if available
-    if (!this.notifItems.length) {
-      this.notifItems = [
-        { id: 1, title: 'Welcome to TaskFlow!', body: 'Your account has been successfully created', read: false, type: 'success', time: new Date(Date.now() - 3 * 60000) },
-        { id: 2, title: 'Get started', body: 'Add your first task to begin managing work', read: false, type: 'info', time: new Date(Date.now() - 8 * 60000) },
-      ];
-    }
+    this.notifLoading = true;
+    this.notifService.getAll().subscribe({
+      next: items => { this.notifItems = items; this.notifLoading = false; },
+      error: () => { this.toast.show('Failed to load notifications', 'error'); this.notifLoading = false; }
+    });
   }
 
-  get filteredNotifItems(): any[] {
-    if (this.notifFilter === 'UNREAD') return this.notifItems.filter(n => !n.read);
-    if (this.notifFilter === 'READ') return this.notifItems.filter(n => n.read);
+  get filteredNotifItems(): AppNotification[] {
+    if (this.notifFilter === 'UNREAD') return this.notifItems.filter(n => !n.isRead);
+    if (this.notifFilter === 'READ')   return this.notifItems.filter(n => n.isRead);
     return this.notifItems;
   }
 
-  get unreadCount(): number { return this.notifItems.filter(n => !n.read).length; }
+  get unreadCount(): number { return this.notifItems.filter(n => !n.isRead).length; }
 
-  markRead(item: any) { item.read = true; }
-  deleteNotif(item: any) { this.notifItems = this.notifItems.filter(n => n.id !== item.id); }
-  markAllRead() { this.notifItems.forEach(n => n.read = true); }
-  clearAllNotif() { this.notifItems = []; }
+  markRead(item: AppNotification) {
+    this.notifService.markRead(item.id).subscribe({
+      next: () => { item.isRead = true; },
+      error: () => this.toast.show('Failed to mark as read', 'error')
+    });
+  }
 
-  getNotifIcon(type: string): string {
-    const map: Record<string, string> = { success: '✓', info: '!', warning: '⚠', error: '✕' };
-    return map[type] || '•';
+  deleteNotif(item: AppNotification) {
+    this.notifService.deleteOne(item.id).subscribe({
+      next: () => { this.notifItems = this.notifItems.filter(n => n.id !== item.id); },
+      error: () => this.toast.show('Failed to delete notification', 'error')
+    });
+  }
+
+  markAllRead() {
+    this.notifService.markAllRead().subscribe({
+      next: () => { this.notifItems.forEach(n => n.isRead = true); this.toast.show('All marked as read', 'success'); },
+      error: () => this.toast.show('Failed', 'error')
+    });
+  }
+
+  clearAllNotif() {
+    this.notifService.clearAll().subscribe({
+      next: () => { this.notifItems = []; this.toast.show('Cleared', 'success'); },
+      error: () => this.toast.show('Failed to clear', 'error')
+    });
   }
 
   getNotifIconColor(type: string): string {
-    const map: Record<string, string> = { success: '#3fb950', info: '#e3b341', warning: '#f97316', error: '#f85149' };
+    const map: Record<string, string> = {
+      TASK_ASSIGNED: '#58a6ff', TEAM_ADDED: '#3fb950',
+      TEAM_REMOVED:  '#f85149', GENERAL:    '#7d8590'
+    };
     return map[type] || '#7d8590';
   }
 
-  getRelativeTime(date: Date): string {
-    const diff = Date.now() - new Date(date).getTime();
+  getRelativeTime(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return 'just now';
     if (mins < 60) return `${mins}m ago`;
@@ -309,17 +292,12 @@ export class SettingsComponent implements OnInit {
     }, 500);
   }
 
-  // ── Team Settings ──
+  // ── Team Settings ─────────────────────────────────────────────────
+
   loadManagedTeams() {
     this.teamsLoading = true;
     this.teamService.getTeams().subscribe({
-      next: teams => {
-        this.managedTeams = teams;
-        this.teamsLoading = false;
-        if (teams.length > 0 && teams[0].members?.length > 0) {
-          console.log('[Settings] First team member shape:', teams[0].members[0]);
-        }
-      },
+      next: teams => { this.managedTeams = teams; this.teamsLoading = false; },
       error: () => { this.toast.show('Failed to load teams', 'error'); this.teamsLoading = false; }
     });
   }
@@ -353,36 +331,43 @@ export class SettingsComponent implements OnInit {
   searchTeamUsers(teamId: number, query: string) {
     if (!query) { this.teamUserSearch[teamId] = []; return; }
     const q = query.toLowerCase();
-    this.teamUserSearch[teamId] = this.allUsers.filter(u => u.fullName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+    this.teamUserSearch[teamId] = this.allUsers.filter(
+      u => u.fullName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    );
   }
 
   inviteMember(teamId: number, user: any) {
     this.teamService.addMember(teamId, { userId: user.id }).subscribe({
-      next: () => { this.toast.show(`${user.fullName} added`, 'success'); this.teamUserSearch[teamId] = []; this.teamInviteUser[teamId] = ''; this.loadManagedTeams(); },
+      next: () => {
+        this.toast.show(`${user.fullName} added`, 'success');
+        this.teamUserSearch[teamId] = []; this.teamInviteUser[teamId] = '';
+        this.loadManagedTeams();
+      },
       error: () => this.toast.show('Failed to add member', 'error')
     });
   }
 
-  // ── Member helpers ──
-  getMemberId(member: any): any { return member?.user?.id ?? member?.userId ?? member?.id ?? Math.random(); }
-  getMemberName(member: any): string { return member?.user?.fullName ?? member?.fullName ?? member?.user?.name ?? member?.name ?? 'Unknown'; }
+  // ── Helpers ───────────────────────────────────────────────────────
+
+  getMemberId(member: any): any    { return member?.user?.id ?? member?.userId ?? member?.id ?? Math.random(); }
+  getMemberName(member: any): string { return member?.user?.fullName ?? member?.fullName ?? 'Unknown'; }
   getMemberEmail(member: any): string { return member?.user?.email ?? member?.email ?? ''; }
   getMemberRole(member: any): string { return member?.role ?? member?.user?.role ?? ''; }
-  getMembersList(team: any): any[] { return team?.members ?? []; }
+  getMembersList(team: any): any[]  { return team?.members ?? []; }
 
   getInitials(name: string): string {
     return name?.split(' ').map((n: string) => n[0]).slice(0, 2).join('').toUpperCase() || '?';
   }
 
   getAvatarColor(name: string): string {
-    const colors = ['#6366f1', '#3fb950', '#e3b341', '#58a6ff', '#bc8cff', '#ec4899', '#14b8a6', '#f97316'];
+    const colors = ['#6366f1','#3fb950','#e3b341','#58a6ff','#bc8cff','#ec4899','#14b8a6','#f97316'];
     let h = 0;
     for (const c of name || '') h = c.charCodeAt(0) + ((h << 5) - h);
     return colors[Math.abs(h) % colors.length];
   }
 
   getRoleBadge(role: string): string {
-    const map: Record<string, string> = { ADMIN: 'role-admin', MANAGER: 'role-manager', MEMBER: 'role-member', VIEWER: 'role-viewer' };
+    const map: Record<string, string> = { ADMIN:'role-admin', MANAGER:'role-manager', MEMBER:'role-member', VIEWER:'role-viewer' };
     return map[role] || 'role-member';
   }
 }
